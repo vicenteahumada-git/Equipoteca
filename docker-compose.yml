@@ -1,5 +1,15 @@
 version: '3.8'
 services:
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: 'equipoteca_db'
+      MYSQL_ROOT_PASSWORD: 'password'
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+
   web:
     build: .
     ports:
@@ -8,3 +18,5 @@ services:
       - .:/app
     environment:
       - FLASK_ENV=development
+    depends_on:
+      - db
