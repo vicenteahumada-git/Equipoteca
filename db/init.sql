@@ -61,11 +61,11 @@ CREATE TABLE SANCION (
 
 -- Datos de prueba
 INSERT INTO ADMINISTRADOR (rut, nombre, apellido, correo, contrasena) VALUES 
-('11111111-1', 'Admin', 'Principal', 'admin@usach.cl', 'admin123');
+('11111111-1', 'Admin', 'Principal', 'admin@usach.cl', '123');
 
 INSERT INTO ESTUDIANTE (rut, nombre, apellido, correo, contrasena) VALUES 
 ('22222222-2', 'Juan', 'Pérez', 'juan@usach.cl', '123'),
-('33333333-3', 'María', 'González', 'maria.@usach.cl', '123');
+('33333333-3', 'María', 'González', 'maria@usach.cl', '123');
 
 INSERT INTO TIPO_RECURSO (nombre_tipo) VALUES ('Sala de Estudio'), ('Computador'), ('Notebook'), ('Tablet');
 

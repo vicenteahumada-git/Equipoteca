@@ -47,7 +47,7 @@ def dashboard():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True, buffered=True)
 
-    # --- AUTO-LIMPIEZA INTELIGENTE ---
+    # Auto-limpieza de solicitudes caducadas y finalizadas
     cursor.execute("""
         UPDATE SOLICITUD S JOIN RECURSO R ON S.id_recurso = R.id_recurso 
         SET S.estado_solicitud = 'Caducada' 
@@ -63,21 +63,51 @@ def dashboard():
     cursor.execute("UPDATE SOLICITUD SET estado_solicitud = 'Finalizada' WHERE estado_solicitud = 'Aprobada' AND TIMESTAMP(fecha_fin, hora_fin) < NOW()")
     conn.commit()
     
+    # 1. VERIFICACIÓN DE SANCIÓN (Solo Estudiante)
+    if session['rol'] == 'estudiante':
+        cursor.execute("SELECT motivo, fecha_fin FROM SANCION WHERE rut_estudiante = %s AND (fecha_fin IS NULL OR fecha_fin > NOW())", (session['rut'],))
+        sancion_activa = cursor.fetchone()
+        if sancion_activa:
+            conn.close()
+            return render_template('dashboard.html', sancionado=True, sancion=sancion_activa)
+
+    # 2. CONSULTAS GLOBALES DE DISPONIBILIDAD (Para Admin y Estudiante)
     hoy = datetime.date.today()
     max_fecha = hoy + datetime.timedelta(days=30)
     hoy_str = hoy.strftime('%Y-%m-%d')
     max_fecha_str = max_fecha.strftime('%Y-%m-%d')
 
-    if session['rol'] == 'estudiante':
-        # VERIFICAR SI ESTÁ SANCIONADO
-        cursor.execute("SELECT motivo, fecha_fin FROM SANCION WHERE rut_estudiante = %s AND (fecha_fin IS NULL OR fecha_fin > NOW())", (session['rut'],))
-        sancion_activa = cursor.fetchone()
-        
-        if sancion_activa:
-            conn.close()
-            return render_template('dashboard.html', sancionado=True, sancion=sancion_activa)
+    cursor.execute("SELECT R.id_recurso, R.nombre, R.id_tipo, T.nombre_tipo, R.biblioteca, R.estado FROM RECURSO R JOIN TIPO_RECURSO T ON R.id_tipo = T.id_tipo WHERE R.estado = 'Disponible'")
+    todos_recursos = cursor.fetchall()
 
-        # Si no está sancionado, cargar dashboard normal:
+    cursor.execute("SELECT id_recurso FROM SOLICITUD WHERE estado_solicitud IN ('Pendiente', 'Aprobada')")
+    equipos_ocultos = [row['id_recurso'] for row in cursor.fetchall()]
+
+    bibliotecas_salas_pcs = {}
+    equipos_por_tipo = {}
+    
+    for r in todos_recursos:
+        if r['id_tipo'] in [1, 2]:
+            bib = r['biblioteca']
+            if bib not in bibliotecas_salas_pcs: bibliotecas_salas_pcs[bib] = {'salas': [], 'pcs': []}
+            if r['id_tipo'] == 1: bibliotecas_salas_pcs[bib]['salas'].append(r)
+            else: bibliotecas_salas_pcs[bib]['pcs'].append(r)
+        else:
+            if r['id_recurso'] not in equipos_ocultos:
+                tipo = r['nombre_tipo']
+                if tipo not in equipos_por_tipo: equipos_por_tipo[tipo] = []
+                equipos_por_tipo[tipo].append(r)
+
+    cursor.execute("SELECT id_recurso, fecha_inicio, hora_inicio as bloque FROM SOLICITUD WHERE estado_solicitud IN ('Pendiente', 'Aprobada')")
+    reqs = cursor.fetchall()
+    for r in reqs:
+        r['fecha'] = r['fecha_inicio'].strftime('%Y-%m-%d')
+        r['bloque'] = str(r['bloque']).zfill(8)
+        del r['fecha_inicio']
+    bloques_ocupados_json = json.dumps(reqs)
+
+    # 3. SEPARACIÓN DE CONTEXTOS ESPECÍFICOS
+    if session['rol'] == 'estudiante':
         cursor.execute("""
             SELECT S.id_solicitud, R.nombre as recurso, R.biblioteca, S.fecha_inicio, S.hora_inicio, S.hora_fin, S.estado_solicitud 
             FROM SOLICITUD S JOIN RECURSO R ON S.id_recurso = R.id_recurso 
@@ -99,45 +129,6 @@ def dashboard():
             p['inicio_hora_str'] = str(p['hora_inicio'])[:5]
             p['fin_hora_str'] = str(p['hora_fin'])[:5]
 
-        # CORRECCIÓN DEL BUG DE BLOQUES (zfill for padding 9:00:00 to 09:00:00)
-        cursor.execute("""
-            SELECT id_recurso, fecha_inicio, hora_inicio as bloque 
-            FROM SOLICITUD 
-            WHERE (rut_estudiante = %s AND estado_solicitud = 'Pendiente') 
-               OR (estado_solicitud = 'Aprobada')
-        """, (session['rut'],))
-        reqs = cursor.fetchall()
-        for r in reqs:
-            r['fecha'] = r['fecha_inicio'].strftime('%Y-%m-%d')
-            r['bloque'] = str(r['bloque']).zfill(8) # Solución clave aquí
-            del r['fecha_inicio']
-        bloques_ocupados_json = json.dumps(reqs)
-
-        cursor.execute("SELECT R.id_recurso, R.nombre, R.id_tipo, T.nombre_tipo, R.biblioteca, R.estado FROM RECURSO R JOIN TIPO_RECURSO T ON R.id_tipo = T.id_tipo WHERE R.estado = 'Disponible'")
-        todos_recursos = cursor.fetchall()
-        
-        cursor.execute("""
-            SELECT id_recurso FROM SOLICITUD 
-            WHERE (rut_estudiante = %s AND estado_solicitud IN ('Pendiente', 'Aprobada'))
-               OR (estado_solicitud = 'Aprobada' AND fecha_fin >= CURDATE())
-        """, (session['rut'],))
-        equipos_ocultos = [row['id_recurso'] for row in cursor.fetchall()]
-
-        bibliotecas_salas_pcs = {}
-        equipos_por_tipo = {}
-        
-        for r in todos_recursos:
-            if r['id_tipo'] in [1, 2]:
-                bib = r['biblioteca']
-                if bib not in bibliotecas_salas_pcs: bibliotecas_salas_pcs[bib] = {'salas': [], 'pcs': []}
-                if r['id_tipo'] == 1: bibliotecas_salas_pcs[bib]['salas'].append(r)
-                else: bibliotecas_salas_pcs[bib]['pcs'].append(r)
-            else:
-                if r['id_recurso'] not in equipos_ocultos:
-                    tipo = r['nombre_tipo']
-                    if tipo not in equipos_por_tipo: equipos_por_tipo[tipo] = []
-                    equipos_por_tipo[tipo].append(r)
-        
         conn.close()
         return render_template('dashboard.html', sancionado=False, mis_solicitudes=mis_solicitudes, prestamos=prestamos, 
                                bloques_ocupados_json=bloques_ocupados_json, bibliotecas=bibliotecas_salas_pcs,
@@ -178,7 +169,6 @@ def dashboard():
             a['inicio_str'], a['fin_str'] = str(a['hora_inicio'])[:5], str(a['hora_fin'])[:5]
             activos_admin[bib].append(a)
 
-        # LÓGICA DE SANCIONES PARA ADMIN
         cursor.execute("""
             SELECT S.id_sancion, S.motivo, S.fecha_inicio, S.fecha_fin, E.nombre as est_nombre, E.apellido as est_apellido, E.rut as est_rut, A.nombre as adm_nombre
             FROM SANCION S JOIN ESTUDIANTE E ON S.rut_estudiante = E.rut JOIN ADMINISTRADOR A ON S.rut_admin = A.rut
@@ -186,15 +176,27 @@ def dashboard():
         """)
         lista_sanciones = cursor.fetchall()
         
-        # Estudiantes no sancionados para el select
-        cursor.execute("""
-            SELECT rut, nombre, apellido, correo FROM ESTUDIANTE 
-            WHERE rut NOT IN (SELECT rut_estudiante FROM SANCION WHERE fecha_fin IS NULL OR fecha_fin > NOW())
-        """)
+        cursor.execute("SELECT rut, nombre, apellido, correo FROM ESTUDIANTE WHERE rut NOT IN (SELECT rut_estudiante FROM SANCION WHERE fecha_fin IS NULL OR fecha_fin > NOW())")
         estudiantes_libres = cursor.fetchall()
 
+        cursor.execute("SELECT id_tipo, nombre_tipo FROM TIPO_RECURSO")
+        tipos_recurso = cursor.fetchall()
+
+        cursor.execute("SELECT R.id_recurso, R.nombre, T.nombre_tipo, R.biblioteca, R.estado FROM RECURSO R JOIN TIPO_RECURSO T ON R.id_tipo = T.id_tipo ORDER BY R.biblioteca, T.nombre_tipo, R.nombre")
+        recursos_admin = cursor.fetchall()
+
+        cursor.execute("SELECT DISTINCT biblioteca FROM RECURSO")
+        bibliotecas_admin = [row['biblioteca'] for row in cursor.fetchall()]
+        if not bibliotecas_admin:
+            bibliotecas_admin = ["Biblioteca Central USACH"]
+
         conn.close()
-        return render_template('dashboard.html', pendientes_admin=pendientes_admin, activos_admin=activos_admin, lista_sanciones=lista_sanciones, estudiantes_libres=estudiantes_libres)
+        return render_template('dashboard.html', pendientes_admin=pendientes_admin, activos_admin=activos_admin, 
+                               lista_sanciones=lista_sanciones, estudiantes_libres=estudiantes_libres,
+                               tipos_recurso=tipos_recurso, recursos_admin=recursos_admin, bibliotecas_admin=bibliotecas_admin,
+                               bloques_ocupados_json=bloques_ocupados_json, bibliotecas=bibliotecas_salas_pcs,
+                               equipos=equipos_por_tipo, todos_recursos=todos_recursos,
+                               hoy=hoy_str, max_fecha=max_fecha_str)
 
 @app.route('/crear_solicitud', methods=['POST'])
 def crear_solicitud():
@@ -209,11 +211,8 @@ def crear_solicitud():
         else:
             hora_inicio, hora_fin = '09:00:00', '21:00:00'
             fecha_fin = (datetime.datetime.strptime(fecha_inicio, '%Y-%m-%d') + datetime.timedelta(days=7)).strftime('%Y-%m-%d')
-
-        cursor.execute("""
-            INSERT INTO SOLICITUD (rut_estudiante, id_recurso, fecha_inicio, fecha_fin, hora_inicio, hora_fin, estado_solicitud)
-            VALUES (%s, %s, %s, %s, %s, %s, 'Pendiente')
-        """, (session['rut'], id_recurso, fecha_inicio, fecha_fin, hora_inicio, hora_fin))
+        cursor.execute("INSERT INTO SOLICITUD (rut_estudiante, id_recurso, fecha_inicio, fecha_fin, hora_inicio, hora_fin, estado_solicitud) VALUES (%s, %s, %s, %s, %s, %s, 'Pendiente')", 
+                       (session['rut'], id_recurso, fecha_inicio, fecha_fin, hora_inicio, hora_fin))
         conn.commit()
         flash("Solicitud creada y en espera de revisión.", "success")
     except Exception as e:
@@ -233,17 +232,9 @@ def accion_solicitud(id_solicitud, accion):
             sol = cursor.fetchone()
             cursor.execute("UPDATE SOLICITUD SET estado_solicitud = 'Aprobada' WHERE id_solicitud = %s", (id_solicitud,))
             if sol['id_tipo'] in [1, 2]:
-                cursor.execute("""
-                    UPDATE SOLICITUD SET estado_solicitud = 'Rechazada' 
-                    WHERE id_recurso = %s AND fecha_inicio = %s AND hora_inicio = %s 
-                    AND id_solicitud != %s AND estado_solicitud = 'Pendiente'
-                """, (sol['id_recurso'], sol['fecha_inicio'], sol['hora_inicio'], id_solicitud))
+                cursor.execute("UPDATE SOLICITUD SET estado_solicitud = 'Rechazada' WHERE id_recurso = %s AND fecha_inicio = %s AND hora_inicio = %s AND id_solicitud != %s AND estado_solicitud = 'Pendiente'", (sol['id_recurso'], sol['fecha_inicio'], sol['hora_inicio'], id_solicitud))
             else:
-                cursor.execute("""
-                    UPDATE SOLICITUD SET estado_solicitud = 'Rechazada' 
-                    WHERE id_recurso = %s AND id_solicitud != %s AND estado_solicitud = 'Pendiente'
-                    AND (fecha_inicio <= %s AND fecha_fin >= %s)
-                """, (sol['id_recurso'], id_solicitud, sol['fecha_fin'], sol['fecha_inicio']))
+                cursor.execute("UPDATE SOLICITUD SET estado_solicitud = 'Rechazada' WHERE id_recurso = %s AND id_solicitud != %s AND estado_solicitud = 'Pendiente' AND (fecha_inicio <= %s AND fecha_fin >= %s)", (sol['id_recurso'], id_solicitud, sol['fecha_fin'], sol['fecha_inicio']))
             flash("Solicitud aprobada exitosamente.", "success")
         elif accion == 'rechazar':
             cursor.execute("UPDATE SOLICITUD SET estado_solicitud = 'Rechazada' WHERE id_solicitud = %s", (id_solicitud,))
@@ -256,25 +247,14 @@ def accion_solicitud(id_solicitud, accion):
     conn.close()
     return redirect(url_for('dashboard'))
 
-# NUEVAS RUTAS DE SANCIONES
 @app.route('/crear_sancion', methods=['POST'])
 def crear_sancion():
     if session.get('rol') != 'admin': return redirect(url_for('login'))
-    rut_estudiante = request.form.get('rut_estudiante')
-    motivo = request.form.get('motivo')
-    dias = request.form.get('dias')
-    es_permanente = request.form.get('permanente') == 'on'
-    
+    rut_estudiante, motivo, dias, es_permanente = request.form.get('rut_estudiante'), request.form.get('motivo'), request.form.get('dias'), request.form.get('permanente') == 'on'
     conn = get_db_connection()
     cursor = conn.cursor()
-    
-    if es_permanente:
-        fecha_fin = None
-    else:
-        fecha_fin = datetime.datetime.now() + datetime.timedelta(days=int(dias))
-        
-    cursor.execute("INSERT INTO SANCION (rut_estudiante, rut_admin, motivo, fecha_fin) VALUES (%s, %s, %s, %s)", 
-                   (rut_estudiante, session['rut'], motivo, fecha_fin))
+    fecha_fin = None if es_permanente else datetime.datetime.now() + datetime.timedelta(days=int(dias))
+    cursor.execute("INSERT INTO SANCION (rut_estudiante, rut_admin, motivo, fecha_fin) VALUES (%s, %s, %s, %s)", (rut_estudiante, session['rut'], motivo, fecha_fin))
     conn.commit()
     conn.close()
     flash("Sanción aplicada correctamente.", "danger")
@@ -285,11 +265,55 @@ def eliminar_sancion(id_sancion):
     if session.get('rol') != 'admin': return redirect(url_for('login'))
     conn = get_db_connection()
     cursor = conn.cursor()
-    # En vez de borrar el registro (para historial), cortamos la fecha de fin a HOY
     cursor.execute("UPDATE SANCION SET fecha_fin = NOW() WHERE id_sancion = %s", (id_sancion,))
     conn.commit()
     conn.close()
     flash("Sanción levantada. El estudiante ya puede pedir recursos.", "success")
+    return redirect(url_for('dashboard'))
+
+@app.route('/agregar_recurso', methods=['POST'])
+def agregar_recurso():
+    if session.get('rol') != 'admin': return redirect(url_for('login'))
+    nombre, id_tipo, biblioteca = request.form.get('nombre'), request.form.get('id_tipo'), request.form.get('biblioteca')
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO RECURSO (nombre, id_tipo, biblioteca, estado) VALUES (%s, %s, %s, 'Disponible')", (nombre, id_tipo, biblioteca))
+    conn.commit()
+    conn.close()
+    flash(f"Recurso '{nombre}' agregado exitosamente a la biblioteca {biblioteca}.", "success")
+    return redirect(url_for('dashboard'))
+
+@app.route('/modificar_recurso', methods=['POST'])
+def modificar_recurso():
+    if session.get('rol') != 'admin': return redirect(url_for('login'))
+    id_recurso, nombre, biblioteca, estado = request.form.get('id_recurso'), request.form.get('nombre').strip(), request.form.get('biblioteca'), request.form.get('estado')
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    if nombre:
+        cursor.execute("UPDATE RECURSO SET nombre = %s, biblioteca = %s, estado = %s WHERE id_recurso = %s", (nombre, biblioteca, estado, id_recurso))
+    else:
+        cursor.execute("UPDATE RECURSO SET biblioteca = %s, estado = %s WHERE id_recurso = %s", (biblioteca, estado, id_recurso))
+    conn.commit()
+    conn.close()
+    flash("Recurso modificado exitosamente.", "success")
+    return redirect(url_for('dashboard'))
+
+@app.route('/eliminar_recurso', methods=['POST'])
+def eliminar_recurso():
+    if session.get('rol') != 'admin': return redirect(url_for('login'))
+    id_recurso = request.form.get('id_recurso')
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("DELETE FROM SOLICITUD WHERE id_recurso = %s", (id_recurso,))
+        cursor.execute("DELETE FROM RECURSO WHERE id_recurso = %s", (id_recurso,))
+        conn.commit()
+        flash("Recurso y todas sus solicitudes asociadas han sido eliminados del registro.", "warning")
+    except Exception as e:
+        conn.rollback()
+        flash(f"Error al eliminar recurso: {e}", "danger")
+    finally:
+        conn.close()
     return redirect(url_for('dashboard'))
 
 @app.route('/logout')

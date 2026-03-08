@@ -2,44 +2,46 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Equipoteca - Login</title>
+    <title>Equipoteca - Iniciar Sesión</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #00a499; }
+        .login-card { border-radius: 15px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .btn-acento { background-color: #ea7600; border-color: #ea7600; color: white; transition: 0.3s; }
+        .btn-acento:hover { background-color: #cc6600; border-color: #cc6600; color: white; transform: translateY(-2px); }
+        .text-institucional { color: #00a499; }
+    </style>
 </head>
-<body class="bg-light d-flex align-items-center vh-100">
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-4">
-            <div class="card shadow-sm border-0">
-                <div class="card-body p-5">
-                    <h3 class="text-center mb-4 text-primary">Equipoteca USACH</h3>
-                    
+<body class="d-flex align-items-center min-vh-100">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-5">
+                <div class="card login-card p-4 bg-white">
+                    <div class="text-center mb-4">
+                        <h2 class="fw-bold text-institucional">EQUIPOTECA</h2>
+                        <p class="text-muted">Sistema de Gestión de Bibliotecas</p>
+                    </div>
                     {% with messages = get_flashed_messages(with_categories=true) %}
-                      {% if messages %}
-                        {% for category, message in messages %}
-                          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                            <strong>¡Atención!</strong> {{ message }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                          </div>
-                        {% endfor %}
-                      {% endif %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }}">{{ message }}</div>
+                            {% endfor %}
+                        {% endif %}
                     {% endwith %}
-
-                    <form method="POST" action="/login">
+                    <form method="POST">
                         <div class="mb-3">
-                            <label class="form-label text-muted">Correo Institucional</label>
-                            <input type="email" class="form-control" name="correo" required>
+                            <label class="form-label fw-bold">Correo Institucional</label>
+                            <input type="email" class="form-control" name="correo" placeholder="ejemplo@usach.cl" required>
                         </div>
                         <div class="mb-4">
-                            <label class="form-label text-muted">Contraseña</label>
-                            <input type="password" class="form-control" name="password" required>
+                            <label class="form-label fw-bold">Contraseña</label>
+                            <input type="password" class="form-control" name="password" placeholder="••••••••" required>
                         </div>
-                        <button type="submit" class="btn btn-primary w-100 fw-bold">Ingresar al Sistema</button>
+                        <button type="submit" class="btn btn-acento w-100 fw-bold py-2 fs-5">Ingresar al Sistema</button>
                     </form>
                 </div>
             </div>
         </div>
     </div>
-</div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

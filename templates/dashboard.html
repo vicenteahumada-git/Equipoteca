@@ -4,25 +4,45 @@
     <meta charset="UTF-8">
     <title>Equipoteca - Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style> .sidebar-item { cursor: pointer; } .hero-section { background-color: #e9ecef; border-radius: 10px; padding: 2rem; } </style>
+    <style>
+        body { background-color: #00a499; display: flex; flex-direction: column; min-height: 100vh; }
+        .bg-institucional { background-color: #00a499 !important; }
+        .text-institucional { color: #00a499 !important; }
+        .bg-acento { background-color: #ea7600 !important; color: white; }
+        .btn-acento { background-color: #ea7600; border-color: #ea7600; color: white; }
+        .btn-acento:hover { background-color: #cc6600; color: white; }
+        
+        .main-content { background-color: white; border-radius: 15px; padding: 25px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); min-height: calc(100vh - 160px); }
+        .sidebar-container { background-color: white; border-radius: 15px; padding: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); height: 100%; min-height: calc(100vh - 160px); }
+        
+        .list-group-item { border: none; margin-bottom: 5px; border-radius: 8px !important; color: #495057; font-weight: 500; transition: 0.3s; }
+        .list-group-item:hover { background-color: #f8f9fa; }
+        .list-group-item.active { background-color: #00a499 !important; border-color: #00a499 !important; color: white !important; font-weight: bold; }
+        
+        .hero-section { background-color: #f8f9fa; border-radius: 10px; padding: 2rem; border-left: 5px solid #ea7600; }
+        
+        /* Ajuste sutil para las pestañas estándar de Bootstrap */
+        .nav-tabs .nav-link { color: #495057; border-radius: 8px 8px 0 0; }
+        .nav-tabs .nav-link.active { color: #00a499; font-weight: bold; border-bottom-color: white; }
+    </style>
 </head>
-<body class="bg-light">
+<body>
 
-<nav class="navbar navbar-dark bg-dark">
-    <div class="container-fluid">
-        <span class="navbar-brand mb-0 h1">Equipoteca USACH</span>
+<nav class="navbar navbar-dark bg-institucional shadow-sm">
+    <div class="container-fluid px-4">
+        <span class="navbar-brand mb-0 h1 fw-bold">📚 EQUIPOTECA</span>
         <div class="d-flex text-white align-items-center">
-            <span class="me-3">👤 {{ session['nombre'] }} ({{ session['rol']|capitalize }})</span>
-            <a href="/logout" class="btn btn-sm btn-outline-light">Cerrar Sesión</a>
+            <span class="me-3 fw-medium">👤 {{ session['nombre'] }} ({{ session['rol']|capitalize }})</span>
+            <a href="/logout" class="btn btn-sm btn-light text-institucional fw-bold">Cerrar Sesión</a>
         </div>
     </div>
 </nav>
 
-<div class="container mt-4 mb-5">
+<div class="container-fluid flex-grow-1 mt-4 mb-4 px-4">
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         {% for category, message in messages %}
-          <div class="alert alert-{{ category }} alert-dismissible fade show">
+          <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm">
             {{ message }}
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
           </div>
@@ -30,50 +50,156 @@
       {% endif %}
     {% endwith %}
 
-    {% if session['rol'] == 'admin' %}
-    <div class="row">
-        <div class="col-md-3">
-            <div class="list-group">
-                <a class="list-group-item list-group-item-action active" data-bs-toggle="list" href="#admin-pendientes">Solicitudes Pendientes</a>
-                <a class="list-group-item list-group-item-action fw-bold text-success" data-bs-toggle="list" href="#admin-activos">Préstamos Activos (Verificación)</a>
-                <a class="list-group-item list-group-item-action fw-bold text-danger" data-bs-toggle="list" href="#admin-sanciones">Sanciones</a>
-                <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#admin-salas">Gestionar Salas</a>
+    <div class="row h-100">
+        <div class="col-md-2 col-lg-2 mb-3">
+            <div class="sidebar-container d-flex flex-column">
+                <h6 class="text-muted text-uppercase fw-bold mb-3 px-2">Menú Principal</h6>
+                <div class="list-group flex-grow-1">
+                {% if session['rol'] == 'admin' %}
+                    <a class="list-group-item list-group-item-action active" data-bs-toggle="list" href="#admin-inicio">🏠 Inicio y Normas</a>
+                    <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#admin-ver-recursos">👀 Ver Disponibilidad</a>
+                    <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#admin-pendientes">⏳ Pendientes</a>
+                    <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#admin-activos">✅ Préstamos Activos</a>
+                    <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#admin-sanciones">🚫 Sanciones</a>
+                    <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#admin-biblioteca">⚙️ Biblioteca</a>
+                {% else %}
+                    <a class="list-group-item list-group-item-action active" data-bs-toggle="list" href="#est-inicio">🏠 Mi Perfil</a>
+                    <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#est-solicitar">➕ Solicitar Recurso</a>
+                    <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#est-historial">📜 Historial</a>
+                    <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#est-activos">✅ Préstamos Activos</a>
+                {% endif %}
+                </div>
             </div>
         </div>
-        
-        <div class="col-md-9">
-            <div class="tab-content">
-                <div class="tab-pane fade show active" id="admin-pendientes">
-                    <h4 class="mb-4">Aprobación por Bibliotecas</h4>
+
+        <div class="col-md-10 col-lg-10">
+            <div class="main-content tab-content">
+                
+                {% if session['rol'] == 'admin' %}
+                
+                <div class="tab-pane fade show active" id="admin-inicio">
+                    <div class="hero-section mb-4">
+                        <h2 class="display-5 text-institucional fw-bold">Bienvenido, Admin {{ session['nombre'] }}</h2>
+                        <p class="lead text-muted mb-0">RUT: {{ session['rut'] }} | Correo: {{ session['correo'] }}</p>
+                    </div>
+                    
+                    <h4 class="mb-3 text-dark border-bottom pb-2">Manual y Reglas del Sistema</h4>
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="card h-100 border-0 bg-light shadow-sm">
+                                <div class="card-body">
+                                    <h5 class="text-institucional fw-bold">⏳ Gestión de Solicitudes</h5>
+                                    <p class="small text-muted">Las solicitudes de los estudiantes entran como <strong>Pendientes</strong>. Al Aprobar una, el sistema automáticamente rechaza otras solicitudes que choquen en horario para el mismo recurso. Tú tienes la última palabra.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card h-100 border-0 bg-light shadow-sm">
+                                <div class="card-body">
+                                    <h5 class="text-institucional fw-bold">🚫 Reglas de Sanciones</h5>
+                                    <ul class="small text-muted mb-0">
+                                        <li>Puedes aplicar suspensiones temporales (días) o baneos permanentes.</li>
+                                        <li>No puedes sancionar a un estudiante que ya tiene una sanción activa en curso (no aparecerá en la lista de búsqueda).</li>
+                                        <li>Cualquier administrador puede levantar anticipadamente un castigo desde la pestaña de Sanciones.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="card border-0 bg-light shadow-sm">
+                                <div class="card-body">
+                                    <h5 class="text-institucional fw-bold">⚙️ Gestión de Inventario (Biblioteca)</h5>
+                                    <p class="small text-muted mb-0">Al Modificar o Agregar recursos, <strong>solo puedes asignar el recurso a bibliotecas ya existentes</strong> en el sistema para mantener la integridad de los datos. Si eliminas un recurso, ⚠️ se destruirá todo su historial de reservas para evitar errores en la base de datos.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="admin-ver-recursos">
+                    <h3 class="mb-4 text-institucional fw-bold">Disponibilidad de Recursos (Vista Admin)</h3>
+                    <ul class="nav nav-tabs mb-4" role="tablist">
+                        <li class="nav-item"><button class="nav-link active fw-bold px-4" data-bs-toggle="tab" data-bs-target="#admin-salas">🏢 Salas / Computadores Fijos</button></li>
+                        <li class="nav-item"><button class="nav-link fw-bold px-4" data-bs-toggle="tab" data-bs-target="#admin-equipos">💻 Equipos Portátiles</button></li>
+                    </ul>
+                    <div class="tab-content">
+                        <div class="tab-pane fade show active" id="admin-salas">
+                            <div class="accordion" id="accordionAdminBiblio">
+                                {% for biblio, data in bibliotecas.items() %}
+                                <div class="accordion-item shadow-sm mb-2 border-0">
+                                    <h2 class="accordion-header"><button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#admin-bib-{{ loop.index }}">{{ biblio }}</button></h2>
+                                    <div id="admin-bib-{{ loop.index }}" class="accordion-collapse collapse" data-bs-parent="#accordionAdminBiblio">
+                                        <div class="accordion-body">
+                                            <div class="row">
+                                                <div class="col-md-6 border-end">
+                                                    <h6 class="text-institucional border-bottom pb-2 fw-bold">Salas de Estudio</h6>
+                                                    {% if data.salas %} <ul class="list-group list-group-flush mt-2">
+                                                        {% for sala in data.salas %}
+                                                            <li class="list-group-item d-flex justify-content-between align-items-center px-0">{{ sala.nombre }}
+                                                                <button class="btn btn-sm btn-outline-secondary fw-bold" data-bs-toggle="modal" data-bs-target="#modalAdmin{{ sala.id_recurso }}">Ver Horarios</button>
+                                                            </li>
+                                                        {% endfor %} </ul>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <h6 class="text-institucional border-bottom pb-2 fw-bold">Computadores Fijos</h6>
+                                                    {% if data.pcs %} <ul class="list-group list-group-flush mt-2">
+                                                        {% for pc in data.pcs %}
+                                                            <li class="list-group-item d-flex justify-content-between align-items-center px-0">{{ pc.nombre }}
+                                                                <button class="btn btn-sm btn-outline-secondary fw-bold" data-bs-toggle="modal" data-bs-target="#modalAdmin{{ pc.id_recurso }}">Ver Horarios</button>
+                                                            </li>
+                                                        {% endfor %} </ul>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="admin-equipos">
+                            <div class="alert alert-info border-0 shadow-sm">Los equipos listados a continuación están actualmente en la biblioteca y <strong>sin reservas activas</strong>.</div>
+                            <div class="row">
+                                {% for tipo, lista_equipos in equipos.items() %}
+                                <div class="col-md-6 mb-4">
+                                    <div class="card shadow-sm border-0 bg-white h-100">
+                                        <div class="card-header bg-light border-0"><h5 class="mb-0 text-institucional fw-bold">{{ tipo }}</h5></div>
+                                        <ul class="list-group list-group-flush">
+                                            {% for eq in lista_equipos %}
+                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                <div><strong>{{ eq.nombre }}</strong> <br> <small class="text-muted">📍 {{ eq.biblioteca }}</small></div>
+                                                <span class="badge bg-success">Disponible</span>
+                                            </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                </div>
+                                {% else %} <div class="col-12"><div class="alert alert-warning">No hay equipos portátiles disponibles en este momento. Todos están prestados.</div></div> {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="admin-pendientes">
+                    <h4 class="mb-4 text-institucional fw-bold">Aprobación por Bibliotecas</h4>
                     {% if pendientes_admin %}
                         <div class="accordion" id="accordionAdminPendientes">
                             {% for biblio, lista_sol in pendientes_admin.items() %}
-                            <div class="accordion-item">
-                                <h2 class="accordion-header">
-                                    <button class="accordion-button {% if loop.index > 1 %}collapsed{% endif %} fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#admin-pend-{{ loop.index }}">
-                                        {{ biblio }} <span class="badge bg-primary ms-2">{{ lista_sol|length }}</span>
-                                    </button>
-                                </h2>
+                            <div class="accordion-item shadow-sm mb-2 border-0">
+                                <h2 class="accordion-header"><button class="accordion-button fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#admin-pend-{{ loop.index }}">{{ biblio }} <span class="badge bg-acento ms-2">{{ lista_sol|length }}</span></button></h2>
                                 <div id="admin-pend-{{ loop.index }}" class="accordion-collapse collapse {% if loop.index == 1 %}show{% endif %}" data-bs-parent="#accordionAdminPendientes">
                                     <div class="accordion-body p-0">
                                         <table class="table table-striped mb-0">
-                                            <thead class="table-dark"><tr><th>Estudiante</th><th>Recurso</th><th>Detalle</th><th>Acciones</th></tr></thead>
+                                            <thead class="bg-institucional text-white"><tr><th>Estudiante</th><th>Recurso</th><th>Detalle</th><th>Acciones</th></tr></thead>
                                             <tbody>
                                                 {% for sol in lista_sol %}
                                                 <tr>
-                                                    <td>{{ sol.est_nombre }} {{ sol.est_apellido }}</td>
-                                                    <td>{{ sol.recurso }}</td>
+                                                    <td>{{ sol.est_nombre }} {{ sol.est_apellido }}</td><td>{{ sol.recurso }}</td>
+                                                    <td>{% if sol.id_tipo in [1, 2] %} Día: {{ sol.fecha_str }} <br> Bloque: {{ sol.inicio_str }} - {{ sol.fin_str }} {% else %} Desde: {{ sol.fecha_str }} <br> Hasta: {{ sol.fecha_fin_str }} {% endif %}</td>
                                                     <td>
-                                                        {% if sol.id_tipo in [1, 2] %} Día: {{ sol.fecha_str }} <br> Bloque: {{ sol.inicio_str }} - {{ sol.fin_str }}
-                                                        {% else %} Desde: {{ sol.fecha_str }} <br> Hasta: {{ sol.fecha_fin_str }} {% endif %}
-                                                    </td>
-                                                    <td>
-                                                        <form action="/accion_solicitud/{{ sol.id_solicitud }}/aprobar" method="POST" class="d-inline">
-                                                            <button type="submit" class="btn btn-success btn-sm">Aprobar</button>
-                                                        </form>
-                                                        <form action="/accion_solicitud/{{ sol.id_solicitud }}/rechazar" method="POST" class="d-inline">
-                                                            <button type="submit" class="btn btn-danger btn-sm">Rechazar</button>
-                                                        </form>
+                                                        <form action="/accion_solicitud/{{ sol.id_solicitud }}/aprobar" method="POST" class="d-inline"><button type="submit" class="btn btn-success btn-sm">Aprobar</button></form>
+                                                        <form action="/accion_solicitud/{{ sol.id_solicitud }}/rechazar" method="POST" class="d-inline"><button type="submit" class="btn btn-danger btn-sm">Rechazar</button></form>
                                                     </td>
                                                 </tr>
                                                 {% endfor %}
@@ -84,22 +210,16 @@
                             </div>
                             {% endfor %}
                         </div>
-                    {% else %}
-                        <div class="alert alert-info">No hay solicitudes pendientes.</div>
-                    {% endif %}
+                    {% else %} <div class="alert alert-info">No hay solicitudes pendientes.</div> {% endif %}
                 </div>
 
                 <div class="tab-pane fade" id="admin-activos">
-                    <h4 class="mb-4">Préstamos Activos y Verificación</h4>
+                    <h4 class="mb-4 text-institucional fw-bold">Préstamos Activos</h4>
                     {% if activos_admin %}
                         <div class="accordion" id="accordionAdminActivos">
                             {% for biblio, lista_act in activos_admin.items() %}
-                            <div class="accordion-item">
-                                <h2 class="accordion-header">
-                                    <button class="accordion-button {% if loop.index > 1 %}collapsed{% endif %} fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#admin-act-{{ loop.index }}">
-                                        {{ biblio }} <span class="badge bg-success ms-2">{{ lista_act|length }}</span>
-                                    </button>
-                                </h2>
+                            <div class="accordion-item shadow-sm mb-2 border-0">
+                                <h2 class="accordion-header"><button class="accordion-button fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#admin-act-{{ loop.index }}">{{ biblio }} <span class="badge bg-success ms-2">{{ lista_act|length }}</span></button></h2>
                                 <div id="admin-act-{{ loop.index }}" class="accordion-collapse collapse {% if loop.index == 1 %}show{% endif %}" data-bs-parent="#accordionAdminActivos">
                                     <div class="accordion-body p-0">
                                         <table class="table table-hover mb-0">
@@ -119,18 +239,15 @@
                             </div>
                             {% endfor %}
                         </div>
-                    {% else %}
-                        <div class="alert alert-secondary">No hay préstamos activos.</div>
-                    {% endif %}
+                    {% else %} <div class="alert alert-secondary">No hay préstamos activos.</div> {% endif %}
                 </div>
 
                 <div class="tab-pane fade" id="admin-sanciones">
-                    <h4 class="mb-4 text-danger">Gestión de Sanciones</h4>
+                    <h4 class="mb-4 text-danger fw-bold">Gestión de Sanciones</h4>
                     <ul class="nav nav-tabs mb-4" role="tablist">
-                        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#ver-sanciones">Sanciones Aplicadas</button></li>
-                        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#crear-sancion">Aplicar Nueva Sanción</button></li>
+                        <li class="nav-item"><button class="nav-link active fw-bold" data-bs-toggle="tab" data-bs-target="#ver-sanciones">Ver Sancionados</button></li>
+                        <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="tab" data-bs-target="#crear-sancion">Aplicar Nueva Sanción</button></li>
                     </ul>
-                    
                     <div class="tab-content">
                         <div class="tab-pane fade show active" id="ver-sanciones">
                             <table class="table table-bordered table-hover">
@@ -140,55 +257,29 @@
                                     <tr>
                                         <td><strong>{{ s.est_nombre }} {{ s.est_apellido }}</strong><br><small class="text-muted">{{ s.est_rut }}</small></td>
                                         <td>{{ s.motivo or 'Sin especificar' }}</td>
-                                        <td>
-                                            {% if s.fecha_fin %}
-                                                <span class="badge bg-warning text-dark">Hasta: {{ s.fecha_fin.strftime('%d/%m/%Y %H:%M') }}</span>
-                                            {% else %}
-                                                <span class="badge bg-danger">Permanente</span>
-                                            {% endif %}
-                                        </td>
+                                        <td>{% if s.fecha_fin %}<span class="badge bg-warning text-dark">Hasta: {{ s.fecha_fin.strftime('%d/%m/%Y %H:%M') }}</span>{% else %}<span class="badge bg-danger">Permanente</span>{% endif %}</td>
                                         <td>Admin. {{ s.adm_nombre }}</td>
-                                        <td>
-                                            <form action="/eliminar_sancion/{{ s.id_sancion }}" method="POST" onsubmit="return confirm('¿Seguro que deseas levantar esta sanción?');">
-                                                <button type="submit" class="btn btn-sm btn-outline-success">Levantar Castigo</button>
-                                            </form>
-                                        </td>
+                                        <td><form action="/eliminar_sancion/{{ s.id_sancion }}" method="POST" onsubmit="return confirm('¿Levantar esta sanción?');"><button type="submit" class="btn btn-sm btn-outline-success fw-bold">Levantar Castigo</button></form></td>
                                     </tr>
-                                    {% else %}
-                                    <tr><td colspan="5" class="text-center">No hay alumnos sancionados en este momento.</td></tr>
-                                    {% endfor %}
+                                    {% else %} <tr><td colspan="5" class="text-center">No hay alumnos sancionados en este momento.</td></tr> {% endfor %}
                                 </tbody>
                             </table>
                         </div>
-
                         <div class="tab-pane fade" id="crear-sancion">
                             <div class="card border-danger shadow-sm">
                                 <div class="card-body">
                                     <form action="/crear_sancion" method="POST" id="formSancion">
                                         <div class="mb-3">
-                                            <label class="form-label fw-bold">Buscar Estudiante</label>
-                                            <select class="form-select" name="rut_estudiante" required>
-                                                <option value="" disabled selected>Selecciona un estudiante habilitado...</option>
-                                                {% for est in estudiantes_libres %}
-                                                    <option value="{{ est.rut }}">{{ est.nombre }} {{ est.apellido }} ({{ est.rut }}) - {{ est.correo }}</option>
-                                                {% endfor %}
+                                            <label class="form-label fw-bold">Buscar Estudiante Libre</label>
+                                            <input type="text" id="busquedaEstudiante" class="form-control mb-2" placeholder="🔍 Buscar por nombre, apellido o RUT..." onkeyup="filtrarLista('busquedaEstudiante', 'selectEstudiantes')">
+                                            <select class="form-select" name="rut_estudiante" id="selectEstudiantes" size="4" required>
+                                                {% for est in estudiantes_libres %} <option value="{{ est.rut }}">{{ est.nombre }} {{ est.apellido }} ({{ est.rut }})</option> {% endfor %}
                                             </select>
                                         </div>
-                                        <div class="mb-3">
-                                            <label class="form-label fw-bold">Motivo (Opcional)</label>
-                                            <input type="text" class="form-control" name="motivo" placeholder="Ej: Atraso en devolución de Notebook, Mal uso de sala...">
-                                        </div>
+                                        <div class="mb-3"><label class="form-label fw-bold">Motivo</label><input type="text" class="form-control" name="motivo" placeholder="Ej: Atraso en devolución..."></div>
                                         <div class="row align-items-center mb-4">
-                                            <div class="col-md-6">
-                                                <label class="form-label fw-bold">Días de suspensión</label>
-                                                <input type="number" class="form-control" name="dias" id="inputDias" min="1" value="3" required>
-                                            </div>
-                                            <div class="col-md-6 mt-4">
-                                                <div class="form-check form-switch">
-                                                    <input class="form-check-input" type="checkbox" id="checkPermanente" name="permanente" onchange="togglePermanente()">
-                                                    <label class="form-check-label text-danger fw-bold" for="checkPermanente">Sanción Permanente</label>
-                                                </div>
-                                            </div>
+                                            <div class="col-md-6"><label class="form-label fw-bold">Días de suspensión</label><input type="number" class="form-control" name="dias" id="inputDias" min="1" value="3" required></div>
+                                            <div class="col-md-6 mt-4"><div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="checkPermanente" name="permanente" onchange="togglePermanente()"><label class="form-check-label text-danger fw-bold" for="checkPermanente">Sanción Permanente</label></div></div>
                                         </div>
                                         <button type="submit" class="btn btn-danger w-100 fw-bold">Aplicar Sanción</button>
                                     </form>
@@ -198,103 +289,157 @@
                     </div>
                 </div>
 
-                <div class="tab-pane fade" id="admin-salas"><h3>Gestionar Salas</h3><p class="text-muted">Próxima implementación...</p></div>
-            </div>
-        </div>
-    </div>
-    
-    <script>
-        function togglePermanente() {
-            const isChecked = document.getElementById('checkPermanente').checked;
-            const inputDias = document.getElementById('inputDias');
-            inputDias.disabled = isChecked;
-            if (isChecked) inputDias.value = "";
-            else inputDias.value = "3";
-        }
-        document.getElementById('formSancion').onsubmit = function() {
-            if(document.getElementById('checkPermanente').checked) {
-                return confirm('⚠️ ALERTA: Estás a punto de aplicar una sanción PERMANENTE. El alumno no podrá usar la plataforma nunca más a menos que otro administrador le levante el castigo. ¿Continuar?');
-            }
-            return true;
-        };
-    </script>
+                <div class="tab-pane fade" id="admin-biblioteca">
+                    <h4 class="mb-4 text-institucional fw-bold">Gestión del Inventario</h4>
+                    <ul class="nav nav-pills mb-4 nav-fill gap-2" role="tablist">
+                        <li class="nav-item"><button class="nav-link active bg-success text-white" data-bs-toggle="pill" data-bs-target="#agregar-recurso">➕ Agregar</button></li>
+                        <li class="nav-item"><button class="nav-link text-dark" style="background-color: #ffc107;" data-bs-toggle="pill" data-bs-target="#modificar-recurso">✏️ Modificar</button></li>
+                        <li class="nav-item"><button class="nav-link bg-danger text-white" data-bs-toggle="pill" data-bs-target="#eliminar-recurso">🗑️ Eliminar</button></li>
+                    </ul>
 
-    {% else %}
-        
-        {% if sancionado %}
-        <div class="row justify-content-center mt-5">
-            <div class="col-md-8">
-                <div class="card border-danger text-center shadow-lg">
-                    <div class="card-header bg-danger text-white"><h3><span style="font-size: 2rem;">⚠️</span> CUENTA SUSPENDIDA</h3></div>
-                    <div class="card-body py-5">
-                        <h4 class="card-title text-danger mb-4">Tu acceso a Equipoteca ha sido bloqueado por un Administrador.</h4>
-                        <div class="alert alert-secondary text-start d-inline-block px-5 py-3 shadow-sm">
-                            <p class="mb-2"><strong>Motivo del bloqueo:</strong> <span class="text-dark">{{ sancion.motivo or 'Infracción al reglamento de biblioteca.' }}</span></p>
-                            <p class="mb-0"><strong>Tiempo restante:</strong> 
-                                {% if sancion.fecha_fin %}
-                                    <span class="text-danger fw-bold">Hasta el {{ sancion.fecha_fin.strftime('%d/%m/%Y a las %H:%M') }} hrs.</span>
-                                {% else %}
-                                    <span class="text-danger fw-bold fs-5">BANEO PERMANENTE</span>
-                                {% endif %}
-                            </p>
+                    <div class="tab-content">
+                        <div class="tab-pane fade show active" id="agregar-recurso">
+                            <div class="card border-success shadow-sm">
+                                <div class="card-body">
+                                    <form action="/agregar_recurso" method="POST">
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3"><label class="form-label fw-bold">Tipo de Recurso</label><select class="form-select" name="id_tipo" required><option value="" disabled selected>Selecciona...</option>{% for t in tipos_recurso %} <option value="{{ t.id_tipo }}">{{ t.nombre_tipo }}</option> {% endfor %}</select></div>
+                                            <div class="col-md-6 mb-3"><label class="form-label fw-bold">Nombre</label><input type="text" class="form-control" name="nombre" placeholder="Ej: Sala 5, PC 12..." required></div>
+                                        </div>
+                                        <div class="mb-4"><label class="form-label fw-bold">Asignar a Biblioteca Existente</label><input type="text" id="busqAgregaBiblio" class="form-control mb-2" placeholder="🔍 Buscar biblioteca..." onkeyup="filtrarLista('busqAgregaBiblio', 'selectBiblioAgregar')"><select class="form-select" name="biblioteca" id="selectBiblioAgregar" size="3" required>{% for b in bibliotecas_admin %} <option value="{{ b }}">{{ b }}</option> {% endfor %}</select></div>
+                                        <button type="submit" class="btn btn-success w-100 fw-bold">Registrar Recurso</button>
+                                    </form>
+                                </div>
+                            </div>
                         </div>
-                        <p class="mt-4 text-muted small">Si crees que esto es un error, por favor acércate al mesón de atención de la Biblioteca Central.</p>
+
+                        <div class="tab-pane fade" id="modificar-recurso">
+                            <div class="card border-warning shadow-sm">
+                                <div class="card-body">
+                                    <form action="/modificar_recurso" method="POST">
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold">Buscar Equipo a Modificar</label>
+                                            <input type="text" id="busquedaModificar" class="form-control mb-2" placeholder="🔍 Escribe nombre o biblioteca..." onkeyup="filtrarLista('busquedaModificar', 'selectModificar')">
+                                            <select class="form-select" name="id_recurso" id="selectModificar" size="4" onchange="autoSeleccionarBiblioteca()" required>
+                                                <option value="" disabled selected>-- Seleccione un recurso --</option>
+                                                {% for r in recursos_admin %}
+                                                    <option value="{{ r.id_recurso }}" data-biblio="{{ r.biblioteca }}">[{{ r.nombre_tipo }}] {{ r.nombre }} - {{ r.biblioteca }} ({{ r.estado }})</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="mb-3"><label class="form-label fw-bold">Nuevo Nombre <small class="text-muted">(Dejar vacío para conservar el actual)</small></label><input type="text" class="form-control" name="nombre" placeholder="Nombre actual del recurso..."></div>
+                                        <div class="row">
+                                            <div class="col-md-6 mb-4"><label class="form-label fw-bold">Modificar Biblioteca Origen</label><input type="text" id="busqModificaBiblio" class="form-control mb-2" placeholder="🔍 Filtrar lista..." onkeyup="filtrarLista('busqModificaBiblio', 'selectBiblioModificar')"><select class="form-select" name="biblioteca" id="selectBiblioModificar" size="3" required>{% for b in bibliotecas_admin %} <option value="{{ b }}">{{ b }}</option> {% endfor %}</select></div>
+                                            <div class="col-md-6 mb-4"><label class="form-label fw-bold">Estado de Disponibilidad</label><select class="form-select mt-5" name="estado" required><option value="Disponible">Disponible (Operativo)</option><option value="Mantenimiento">En Mantenimiento</option></select></div>
+                                        </div>
+                                        <button type="submit" class="btn btn-warning w-100 fw-bold text-dark">Guardar Cambios</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="tab-pane fade" id="eliminar-recurso">
+                            <div class="card border-danger shadow-sm">
+                                <div class="card-body">
+                                    <div class="alert alert-danger fw-bold">⚠️ Advertencia: Eliminar un recurso borrará automáticamente todas las reservas asociadas.</div>
+                                    <form action="/eliminar_recurso" method="POST" onsubmit="return confirm('⚠️ ALERTA CRÍTICA: Acción irreversible. ¿Proceder?');">
+                                        <div class="mb-4"><label class="form-label fw-bold">Buscar Equipo a Eliminar</label><input type="text" id="busquedaEliminar" class="form-control mb-2" placeholder="🔍 Escribe nombre..." onkeyup="filtrarLista('busquedaEliminar', 'selectEliminar')"><select class="form-select bg-light text-danger fw-bold" name="id_recurso" id="selectEliminar" size="5" required>{% for r in recursos_admin %} <option value="{{ r.id_recurso }}">{{ r.nombre }} - {{ r.biblioteca }}</option> {% endfor %}</select></div>
+                                        <button type="submit" class="btn btn-danger w-100 fw-bold">Eliminar Recurso Definitivamente</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
-        
-        {% else %}
-        <div class="row">
-            <div class="col-md-3">
-                <div class="list-group">
-                    <a class="list-group-item list-group-item-action active" data-bs-toggle="list" href="#est-inicio">Inicio</a>
-                    <a class="list-group-item list-group-item-action fw-bold text-primary" data-bs-toggle="list" href="#est-solicitar">Solicitar</a>
-                    <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#est-historial">Mis Solicitudes</a>
-                    <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#est-activos">Préstamos Activos</a>
-                </div>
-            </div>
 
-            <div class="col-md-9">
-                <div class="tab-content">
+                {% else %}
+                {% if sancionado %}
+                    <div class="row justify-content-center mt-5">
+                        <div class="col-md-8">
+                            <div class="card border-danger text-center shadow-lg">
+                                <div class="card-header bg-danger text-white"><h3><span style="font-size: 2rem;">⚠️</span> CUENTA SUSPENDIDA</h3></div>
+                                <div class="card-body py-5">
+                                    <h4 class="card-title text-danger mb-4">Tu acceso a Equipoteca ha sido bloqueado.</h4>
+                                    <div class="alert alert-secondary text-start d-inline-block px-5 py-3 shadow-sm">
+                                        <p class="mb-2"><strong>Motivo del bloqueo:</strong> <span class="text-dark">{{ sancion.motivo or 'Infracción al reglamento.' }}</span></p>
+                                        <p class="mb-0"><strong>Tiempo restante:</strong> 
+                                            {% if sancion.fecha_fin %} <span class="text-danger fw-bold">Hasta el {{ sancion.fecha_fin.strftime('%d/%m/%Y a las %H:%M') }}</span>
+                                            {% else %} <span class="text-danger fw-bold fs-5">BANEO PERMANENTE</span> {% endif %}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
                     <div class="tab-pane fade show active" id="est-inicio">
-                        <div class="hero-section shadow-sm mb-4">
-                            <h2 class="display-5">Hola, {{ session['nombre'] }} 👋</h2>
-                            <p class="lead">Bienvenido al sistema de préstamos Equipoteca.</p>
+                        <div class="hero-section mb-4 shadow-sm">
+                            <h2 class="display-5 text-institucional fw-bold">Hola, {{ session['nombre'] }} 👋</h2>
+                            <p class="lead text-muted">Estudiante RUT: {{ session['rut'] }} | {{ session['correo'] }}</p>
+                        </div>
+                        <h4 class="mb-3 border-bottom pb-2">📖 Cómo utilizar Equipoteca</h4>
+                        <div class="row g-4 mt-2">
+                            <div class="col-md-4">
+                                <div class="card h-100 border-0 shadow-sm bg-light">
+                                    <div class="card-body text-center">
+                                        <h1 class="text-institucional">1️⃣</h1>
+                                        <h5 class="fw-bold">Busca tu Recurso</h5>
+                                        <p class="small text-muted">Ve a "Solicitar Recurso" y explora entre Salas de Estudio, Computadores de escritorio o equipos portátiles por biblioteca.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card h-100 border-0 shadow-sm bg-light">
+                                    <div class="card-body text-center">
+                                        <h1 class="text-institucional">2️⃣</h1>
+                                        <h5 class="fw-bold">Reserva el Horario</h5>
+                                        <p class="small text-muted">Para salas y PCs, escoge el día y bloque (excepto fines de semana). Los notebooks y tablets se prestan automáticamente por 7 días corridos.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card h-100 border-0 shadow-sm bg-light">
+                                    <div class="card-body text-center">
+                                        <h1 class="text-acento">3️⃣</h1>
+                                        <h5 class="fw-bold">Aprobación</h5>
+                                        <p class="small text-muted">Tu reserva quedará "Pendiente" en tu Historial hasta que el Administrador de biblioteca apruebe el préstamo.</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
                     <div class="tab-pane fade" id="est-solicitar">
-                        <h3 class="mb-4">¿Qué necesitas solicitar hoy?</h3>
-                        <ul class="nav nav-pills mb-4" id="pills-tab" role="tablist">
-                            <li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#pills-salas">🏢 Salas / Computadores</button></li>
-                            <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#pills-equipos">💻 Equipos Portátiles</button></li>
+                        <h3 class="mb-4 text-institucional fw-bold">Catálogo de Recursos</h3>
+                        <ul class="nav nav-tabs mb-4" role="tablist">
+                            <li class="nav-item"><button class="nav-link active fw-bold px-4" data-bs-toggle="tab" data-bs-target="#pills-salas">🏢 Salas / Computadores Fijos</button></li>
+                            <li class="nav-item"><button class="nav-link fw-bold px-4" data-bs-toggle="tab" data-bs-target="#pills-equipos">💻 Equipos Portátiles</button></li>
                         </ul>
                         <div class="tab-content">
                             <div class="tab-pane fade show active" id="pills-salas">
                                 <div class="accordion" id="accordionBibliotecas">
                                     {% for biblio, data in bibliotecas.items() %}
-                                    <div class="accordion-item">
-                                        <h2 class="accordion-header"><button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#bib-{{ loop.index }}">{{ biblio }}</button></h2>
+                                    <div class="accordion-item shadow-sm mb-2 border-0">
+                                        <h2 class="accordion-header"><button class="accordion-button collapsed fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#bib-{{ loop.index }}">{{ biblio }}</button></h2>
                                         <div id="bib-{{ loop.index }}" class="accordion-collapse collapse" data-bs-parent="#accordionBibliotecas">
                                             <div class="accordion-body">
                                                 <div class="row">
                                                     <div class="col-md-6 border-end">
-                                                        <h6 class="text-primary border-bottom pb-2">Salas de Estudio</h6>
+                                                        <h6 class="text-institucional border-bottom pb-2 fw-bold">Salas de Estudio</h6>
                                                         {% if data.salas %} <ul class="list-group list-group-flush mt-2">
                                                             {% for sala in data.salas %}
                                                                 <li class="list-group-item d-flex justify-content-between align-items-center px-0">{{ sala.nombre }}
-                                                                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modal{{ sala.id_recurso }}">Solicitar</button>
+                                                                    <button class="btn btn-sm btn-acento fw-bold" data-bs-toggle="modal" data-bs-target="#modal{{ sala.id_recurso }}">Reservar</button>
                                                                 </li>
                                                             {% endfor %} </ul>
                                                         {% endif %}
                                                     </div>
                                                     <div class="col-md-6">
-                                                        <h6 class="text-primary border-bottom pb-2">Computadores</h6>
+                                                        <h6 class="text-institucional border-bottom pb-2 fw-bold">Computadores Fijos</h6>
                                                         {% if data.pcs %} <ul class="list-group list-group-flush mt-2">
                                                             {% for pc in data.pcs %}
                                                                 <li class="list-group-item d-flex justify-content-between align-items-center px-0">{{ pc.nombre }}
-                                                                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modal{{ pc.id_recurso }}">Solicitar</button>
+                                                                    <button class="btn btn-sm btn-acento fw-bold" data-bs-toggle="modal" data-bs-target="#modal{{ pc.id_recurso }}">Reservar</button>
                                                                 </li>
                                                             {% endfor %} </ul>
                                                         {% endif %}
@@ -309,124 +454,247 @@
                             <div class="tab-pane fade" id="pills-equipos">
                                 <div class="row">
                                     {% for tipo, lista_equipos in equipos.items() %}
-                                    <div class="col-md-12 mb-4">
-                                        <div class="card shadow-sm border-0 bg-white">
-                                            <div class="card-header bg-light border-0"><h5 class="mb-0 text-success">{{ tipo }}</h5></div>
+                                    <div class="col-md-6 mb-4">
+                                        <div class="card shadow-sm border-0 bg-white h-100">
+                                            <div class="card-header bg-light border-0"><h5 class="mb-0 text-institucional fw-bold">{{ tipo }}</h5></div>
                                             <ul class="list-group list-group-flush">
                                                 {% for eq in lista_equipos %}
                                                 <li class="list-group-item d-flex justify-content-between align-items-center">
                                                     <div><strong>{{ eq.nombre }}</strong> <br> <small class="text-muted">📍 {{ eq.biblioteca }}</small></div>
-                                                    <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#modal{{ eq.id_recurso }}">Solicitar</button>
+                                                    <button class="btn btn-sm btn-acento fw-bold" data-bs-toggle="modal" data-bs-target="#modal{{ eq.id_recurso }}">Solicitar</button>
                                                 </li>
                                                 {% endfor %}
                                             </ul>
                                         </div>
                                     </div>
-                                    {% else %} <div class="col-12"><div class="alert alert-warning">No hay equipos portátiles disponibles.</div></div> {% endfor %}
+                                    {% else %} <div class="col-12"><div class="alert alert-warning">No hay equipos portátiles disponibles en este momento.</div></div> {% endfor %}
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <div class="tab-pane fade" id="est-historial">
-                        <h3>Mis Solicitudes</h3>
-                        <table class="table mt-3"><thead class="table-light"><tr><th>Recurso</th><th>Fecha/Bloque</th><th>Estado</th><th>Acción</th></tr></thead>
+                        <h3 class="mb-4 text-institucional fw-bold">Mis Solicitudes e Historial</h3>
+                        <table class="table mt-3 shadow-sm rounded overflow-hidden">
+                            <thead class="bg-light text-secondary"><tr><th>Recurso</th><th>Fecha/Bloque</th><th>Estado</th><th>Acción</th></tr></thead>
                             <tbody>
                                 {% for sol in mis_solicitudes %}
                                 <tr>
-                                    <td>{{ sol.recurso }}<br><small class="text-muted">{{ sol.biblioteca }}</small></td>
+                                    <td><strong>{{ sol.recurso }}</strong><br><small class="text-muted">{{ sol.biblioteca }}</small></td>
                                     <td>{{ sol.fecha_str }} <br> <small class="text-muted">{{ sol.inicio_str }} - {{ sol.fin_str }}</small></td>
                                     <td>
-                                        {% if sol.estado_solicitud == 'Pendiente' %} <span class="badge bg-warning text-dark">Pendiente</span>
-                                        {% elif sol.estado_solicitud == 'Caducada' %} <span class="badge bg-secondary">Caducada</span>
+                                        {% if sol.estado_solicitud == 'Pendiente' %} <span class="badge bg-warning text-dark">En Revisión</span>
+                                        {% elif sol.estado_solicitud == 'Caducada' %} <span class="badge bg-secondary">Caducada / Expiró</span>
                                         {% else %} <span class="badge bg-danger">Rechazada</span> {% endif %}
                                     </td>
                                     <td>
                                         <form action="/accion_solicitud/{{ sol.id_solicitud }}/{{ 'cancelar' if sol.estado_solicitud == 'Pendiente' else 'borrar' }}" method="POST">
-                                            <button type="submit" class="btn btn-sm btn-outline-{{ 'danger' if sol.estado_solicitud == 'Pendiente' else 'secondary' }}">{{ 'Cancelar' if sol.estado_solicitud == 'Pendiente' else 'Borrar' }}</button>
+                                            <button type="submit" class="btn btn-sm btn-outline-{{ 'danger' if sol.estado_solicitud == 'Pendiente' else 'secondary' }}">{{ 'Cancelar' if sol.estado_solicitud == 'Pendiente' else 'Borrar Historial' }}</button>
                                         </form>
                                     </td>
                                 </tr>
-                                {% else %} <tr><td colspan="4" class="text-center">No hay solicitudes en tu historial.</td></tr> {% endfor %}
+                                {% else %} <tr><td colspan="4" class="text-center py-4 text-muted">Aún no has realizado ninguna solicitud.</td></tr> {% endfor %}
                             </tbody>
                         </table>
                     </div>
 
                     <div class="tab-pane fade" id="est-activos">
-                        <h3>Préstamos Activos</h3>
+                        <h3 class="mb-4 text-institucional fw-bold">Mis Préstamos Aprobados</h3>
                         <div class="row mt-3">
                             {% for prestamo in prestamos %}
                             <div class="col-md-6 mb-3">
-                                <div class="card border-success shadow-sm">
-                                    <div class="card-header bg-success text-white"><h5 class="card-title mb-0">{{ prestamo.recurso }}</h5></div>
+                                <div class="card border-0 shadow-sm" style="border-top: 4px solid #ea7600 !important;">
                                     <div class="card-body">
-                                        <p class="mb-1 text-muted">📍 {{ prestamo.biblioteca }}</p><hr class="my-2">
-                                        {% if prestamo.id_tipo in [1, 2] %} <h5 class="text-dark fw-bold mb-0">Bloque: {{ prestamo.inicio_hora_str }} - {{ prestamo.fin_hora_str }}</h5>
-                                        {% else %} <h5 class="text-danger fw-bold mb-0">Devolver antes del {{ prestamo.fin_str }}</h5> {% endif %}
+                                        <h5 class="card-title fw-bold text-dark">{{ prestamo.recurso }}</h5>
+                                        <p class="mb-1 text-muted">📍 {{ prestamo.biblioteca }}</p>
+                                        <hr class="my-2 text-muted">
+                                        {% if prestamo.id_tipo in [1, 2] %} <h6 class="text-institucional fw-bold mb-0">Bloque: {{ prestamo.inicio_hora_str }} - {{ prestamo.fin_hora_str }}</h6>
+                                        {% else %} <h6 class="text-danger fw-bold mb-0">Devolución límite: {{ prestamo.fin_str }}</h6> {% endif %}
                                     </div>
                                 </div>
                             </div>
-                            {% else %} <p>No tienes préstamos activos aprobados.</p> {% endfor %}
+                            {% else %} <div class="col-12"><div class="alert alert-secondary border-0 shadow-sm">No tienes préstamos activos o aprobados para el día de hoy.</div></div> {% endfor %}
                         </div>
                     </div>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer class="bg-institucional text-white py-4 mt-auto shadow-lg" style="border-top: 4px solid #ea7600;">
+    <div class="container">
+        <div class="row align-items-center text-center text-md-start">
+            <div class="col-md-6 mb-3 mb-md-0">
+                <h5 class="fw-bold mb-1">📚 Equipoteca USACH</h5>
+                <p class="small mb-0 text-light">Sistema centralizado de gestión de préstamos de la biblioteca.</p>
+            </div>
+            <div class="col-md-6 text-md-end small">
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-1">📧 <a href="mailto:equipoteca@usach.cl" class="text-white text-decoration-none fw-bold">equipoteca@usach.cl</a></li>
+                    <li class="mb-1">📞 +56 9 1234 5678</li>
+                    <li>🕒 Lunes a viernes de 08:00 a 20:00 hrs.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</footer>
+
+{% if session['rol'] == 'admin' %}
+    {% for recurso in todos_recursos %}
+    <div class="modal fade" id="modalAdmin{{ recurso.id_recurso }}">
+        <div class="modal-dialog">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-secondary text-white"><h5 class="modal-title fw-bold">Disponibilidad: {{ recurso.nombre }}</h5></div>
+                <div class="modal-body">
+                    <p class="text-muted small mb-3">📍 {{ recurso.biblioteca }}</p>
+                    <label class="form-label fw-bold">Seleccionar Día para ver disponibilidad</label>
+                    <input type="date" class="form-control" min="{{ hoy }}" max="{{ max_fecha }}" onchange="verificarDisponibilidadAdmin(this, {{ recurso.id_recurso }})">
+                    <div id="admin-disp-{{ recurso.id_recurso }}" class="mt-4">
+                        <span class="text-muted small">Selecciona una fecha para visualizar los bloques que no han sido reservados.</span>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cerrar</button>
                 </div>
             </div>
         </div>
-        
-        {% for recurso in todos_recursos %}
-        <div class="modal fade" id="modal{{ recurso.id_recurso }}">
-            <div class="modal-dialog"><div class="modal-content">
-                <div class="modal-header bg-dark text-white"><h5 class="modal-title">Solicitar: {{ recurso.nombre }}</h5></div>
-                <form action="/crear_solicitud" method="POST">
-                    <div class="modal-body">
-                        <input type="hidden" name="id_recurso" value="{{ recurso.id_recurso }}">
-                        <input type="hidden" name="id_tipo" value="{{ recurso.id_tipo }}">
+    </div>
+    {% endfor %}
+
+{% elif session['rol'] == 'estudiante' and not sancionado %}
+    {% for recurso in todos_recursos %}
+    <div class="modal fade" id="modal{{ recurso.id_recurso }}">
+        <div class="modal-dialog"><div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-institucional text-white"><h5 class="modal-title fw-bold">Reservar: {{ recurso.nombre }}</h5></div>
+            <form action="/crear_solicitud" method="POST">
+                <div class="modal-body">
+                    <input type="hidden" name="id_recurso" value="{{ recurso.id_recurso }}">
+                    <input type="hidden" name="id_tipo" value="{{ recurso.id_tipo }}">
+                    
+                    {% if recurso.id_tipo in [1, 2] %}
+                        <label class="form-label fw-bold">Día de reserva</label>
+                        <input type="date" class="form-control" name="fecha_inicio" required min="{{ hoy }}" max="{{ max_fecha }}" onchange="validarFechaYFiltrar(this, {{ recurso.id_recurso }})">
+                        <div id="error-fecha-{{ recurso.id_recurso }}" class="text-danger small mt-1 d-none fw-bold">❌ No se atiende fines de semana.</div>
+                        <div id="error-bloques-{{ recurso.id_recurso }}" class="text-danger small mt-1 d-none fw-bold">❌ Todos los bloques están ocupados para este día.</div>
                         
-                        {% if recurso.id_tipo in [1, 2] %}
-                            <label class="form-label">Fecha a reservar</label>
-                            <input type="date" class="form-control" name="fecha_inicio" required min="{{ hoy }}" max="{{ max_fecha }}" onchange="validarFechaYFiltrar(this, {{ recurso.id_recurso }})">
-                            <div id="error-fecha-{{ recurso.id_recurso }}" class="text-danger small mt-1 d-none fw-bold">❌ Fines de semana no permitidos.</div>
-                            <div id="error-bloques-{{ recurso.id_recurso }}" class="text-danger small mt-1 d-none fw-bold">❌ Todos los bloques están ocupados.</div>
-                            
-                            <label class="form-label mt-3">Bloque Horario</label>
-                            <select class="form-select" name="bloque" required>
-                                <option value="" disabled selected>Elige una fecha primero</option>
-                                <option value="09:00:00-10:00:00">09:00 - 10:00</option>
-                                <option value="10:00:00-11:00:00">10:00 - 11:00</option>
-                                <option value="11:00:00-12:00:00">11:00 - 12:00</option>
-                                <option value="13:00:00-14:00:00">13:00 - 14:00</option>
-                                <option value="14:00:00-15:00:00">14:00 - 15:00</option>
-                                <option value="15:00:00-16:00:00">15:00 - 16:00</option>
-                                <option value="16:00:00-17:00:00">16:00 - 17:00</option>
-                                <option value="17:00:00-18:00:00">17:00 - 18:00</option>
-                                <option value="18:00:00-19:00:00">18:00 - 19:00</option>
-                                <option value="19:00:00-20:00:00">19:00 - 20:00</option>
-                                <option value="20:00:00-21:00:00">20:00 - 21:00</option>
-                            </select>
-                        {% else %}
-                            <label class="form-label">Fecha de retiro del equipo</label>
-                            <input type="date" class="form-control mb-1" name="fecha_inicio" required min="{{ hoy }}" max="{{ max_fecha }}" onchange="validarFechaYFiltrar(this, {{ recurso.id_recurso }})">
-                            <div id="error-fecha-{{ recurso.id_recurso }}" class="text-danger small mt-1 mb-3 d-none fw-bold">❌ Fines de semana no permitidos.</div>
-                            <div class="alert alert-info py-2 mt-2">Préstamo fijo por 1 semana (7 días).</div>
-                        {% endif %}
+                        <label class="form-label mt-3 fw-bold">Bloque Horario Disponible</label>
+                        <select class="form-select" name="bloque" required>
+                            <option value="" disabled selected>Elige una fecha primero</option>
+                            <option value="09:00:00-10:00:00">09:00 - 10:00</option><option value="10:00:00-11:00:00">10:00 - 11:00</option>
+                            <option value="11:00:00-12:00:00">11:00 - 12:00</option><option value="13:00:00-14:00:00">13:00 - 14:00</option>
+                            <option value="14:00:00-15:00:00">14:00 - 15:00</option><option value="15:00:00-16:00:00">15:00 - 16:00</option>
+                            <option value="16:00:00-17:00:00">16:00 - 17:00</option><option value="17:00:00-18:00:00">17:00 - 18:00</option>
+                            <option value="18:00:00-19:00:00">18:00 - 19:00</option><option value="19:00:00-20:00:00">19:00 - 20:00</option>
+                            <option value="20:00:00-21:00:00">20:00 - 21:00</option>
+                        </select>
+                    {% else %}
+                        <label class="form-label fw-bold">Fecha de retiro presencial</label>
+                        <input type="date" class="form-control mb-1" name="fecha_inicio" required min="{{ hoy }}" max="{{ max_fecha }}" onchange="validarFechaYFiltrar(this, {{ recurso.id_recurso }})">
+                        <div id="error-fecha-{{ recurso.id_recurso }}" class="text-danger small mt-1 mb-3 d-none fw-bold">❌ El retiro no puede ser fin de semana.</div>
+                        <div class="alert alert-info py-2 mt-2 border-0 bg-light border-start border-4 border-info">El sistema agendará automáticamente tu devolución para <strong>7 días después</strong> del retiro.</div>
+                    {% endif %}
+
+                    <hr class="mt-4 mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="terms-{{ recurso.id_recurso }}" required>
+                        <label class="form-check-label small text-muted" for="terms-{{ recurso.id_recurso }}">
+                            Acepto los términos y condiciones de uso del equipo o sala y me comprometo a devolverlo en el horario estipulado.
+                        </label>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                        <button type="submit" class="btn btn-success" id="btn-submit-{{ recurso.id_recurso }}">Confirmar</button>
-                    </div>
-                </form>
-            </div></div>
-        </div>
-        {% endfor %}
-        {% endif %}
-    {% endif %}
-</div>
+
+                </div>
+                <div class="modal-footer border-0 bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-acento fw-bold px-4" id="btn-submit-{{ recurso.id_recurso }}">Confirmar Solicitud</button>
+                </div>
+            </form>
+        </div></div>
+    </div>
+    {% endfor %}
+{% endif %}
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-{% if session['rol'] == 'estudiante' and not sancionado and bloques_ocupados_json %}
+
 <script>
+    // JSON Global para ambos roles
     const bloquesOcupados = {{ bloques_ocupados_json | safe }};
-    
+
+    function filtrarLista(inputId, selectId) {
+        let input = document.getElementById(inputId).value.toLowerCase();
+        let options = document.getElementById(selectId).options;
+        for (let i = 0; i < options.length; i++) {
+            if (options[i].disabled && options[i].value === "") continue;
+            let text = options[i].text.toLowerCase();
+            options[i].style.display = text.includes(input) ? '' : 'none';
+        }
+    }
+
+    // --- LÓGICA ADMINISTRADOR ---
+    {% if session['rol'] == 'admin' %}
+    function togglePermanente() {
+        const isChecked = document.getElementById('checkPermanente').checked;
+        const inputDias = document.getElementById('inputDias');
+        inputDias.disabled = isChecked;
+        inputDias.value = isChecked ? "" : "3";
+    }
+
+    function autoSeleccionarBiblioteca() {
+        let selectRecurso = document.getElementById('selectModificar');
+        let opcionSeleccionada = selectRecurso.options[selectRecurso.selectedIndex];
+        if (opcionSeleccionada && opcionSeleccionada.value !== "") {
+            let biblioOriginal = opcionSeleccionada.getAttribute('data-biblio');
+            let selectBiblio = document.getElementById('selectBiblioModificar');
+            for(let i=0; i < selectBiblio.options.length; i++) {
+                if(selectBiblio.options[i].value === biblioOriginal) {
+                    selectBiblio.selectedIndex = i; break;
+                }
+            }
+        }
+    }
+
+    function verificarDisponibilidadAdmin(inputFecha, idRecurso) {
+        const container = document.getElementById(`admin-disp-${idRecurso}`);
+        container.innerHTML = "";
+        if (!inputFecha.value) return;
+
+        const dateVal = new Date(inputFecha.value + 'T00:00:00');
+        const day = dateVal.getDay();
+        if (day === 0 || day === 6) {
+            container.innerHTML = `<div class="text-danger fw-bold">❌ No se atiende fines de semana.</div>`;
+            return;
+        }
+
+        const bloquesTotales = [
+            "09:00:00-10:00:00", "10:00:00-11:00:00", "11:00:00-12:00:00",
+            "13:00:00-14:00:00", "14:00:00-15:00:00", "15:00:00-16:00:00",
+            "16:00:00-17:00:00", "17:00:00-18:00:00", "18:00:00-19:00:00",
+            "19:00:00-20:00:00", "20:00:00-21:00:00"
+        ];
+
+        let html = '<p class="fw-bold mb-2 text-dark">Bloques Libres:</p><div class="d-flex flex-wrap gap-2">';
+        let libres = 0;
+
+        bloquesTotales.forEach(b => {
+            let ocupado = bloquesOcupados.some(sol => sol.id_recurso == idRecurso && sol.fecha == inputFecha.value && b.split('-')[0] === sol.bloque);
+            if (!ocupado) {
+                html += `<span class="badge bg-success p-2 fs-6">${b.substring(0,5)} - ${b.substring(9,14)}</span>`;
+                libres++;
+            }
+        });
+
+        if (libres === 0) {
+            html = `<div class="alert alert-danger fw-bold">❌ Todos los bloques están ocupados para este día.</div>`;
+        } else {
+            html += '</div>';
+        }
+        container.innerHTML = html;
+    }
+    {% endif %}
+
+    // --- LÓGICA ESTUDIANTE ---
+    {% if session['rol'] == 'estudiante' and not sancionado %}
     function validarFechaYFiltrar(inputFecha, idRecurso) {
         const modal = document.getElementById(`modal${idRecurso}`);
         const errorFecha = document.getElementById(`error-fecha-${idRecurso}`);
@@ -457,30 +725,19 @@
         Array.from(selectBloque.options).forEach(opt => {
             if(opt.value === "") return;
             opt.disabled = false; opt.hidden = false;
-            
-            // MAGIA AQUÍ: Compara exactamente '09:00:00' (split del value) con sol.bloque ('09:00:00' gracias al zfill)
-            let ocupado = bloquesOcupados.some(sol => 
-                sol.id_recurso == idRecurso && 
-                sol.fecha == inputFecha.value && 
-                opt.value.split('-')[0] === sol.bloque 
-            );
-            
-            if(ocupado) {
-                opt.disabled = true; opt.hidden = true;
-            } else {
-                bloquesDisponibles++;
-            }
+            let ocupado = bloquesOcupados.some(sol => sol.id_recurso == idRecurso && sol.fecha == inputFecha.value && opt.value.split('-')[0] === sol.bloque);
+            if(ocupado) { opt.disabled = true; opt.hidden = true; } 
+            else { bloquesDisponibles++; }
         });
         
         selectBloque.value = "";
-
         if(bloquesDisponibles === 0) {
             selectBloque.classList.add('d-none');
             errorBloques.classList.remove('d-none');
             btnSubmit.disabled = true;
         }
     }
+    {% endif %}
 </script>
-{% endif %}
 </body>
 </html>
