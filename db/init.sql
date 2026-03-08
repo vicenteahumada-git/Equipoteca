@@ -1,3 +1,4 @@
+SET NAMES utf8mb4;
 CREATE DATABASE IF NOT EXISTS equipoteca_db CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish_ci;
 USE equipoteca_db;
 
@@ -17,6 +18,7 @@ CREATE TABLE RECURSO (
     id_recurso INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
     id_tipo INT,
+    biblioteca VARCHAR(100) DEFAULT 'Biblioteca Central',
     estado VARCHAR(20) DEFAULT 'Disponible',
     FOREIGN KEY (id_tipo) REFERENCES TIPO_RECURSO(id_tipo)
 ) CHARACTER SET utf8mb4;
@@ -35,11 +37,23 @@ CREATE TABLE SOLICITUD (
     FOREIGN KEY (id_recurso) REFERENCES RECURSO(id_recurso)
 ) CHARACTER SET utf8mb4;
 
--- DATOS MOCK
+-- USUARIOS
 INSERT INTO ESTUDIANTE VALUES ('33333333-3', 'Íñigo', 'Peña', 'inigo@usach.cl', '1234');
+INSERT INTO ESTUDIANTE VALUES ('22222222-2', 'María', 'López', 'maria@usach.cl', '1234');
 INSERT INTO ADMINISTRADOR VALUES ('11111111-1', 'Sebastián', 'Muñoz', 'admin@usach.cl', '1234');
-INSERT INTO TIPO_RECURSO VALUES (1, 'Sala de Estudio'), (2, 'PC Biblioteca'), (3, 'Equipo Portátil');
-INSERT INTO RECURSO (nombre, id_tipo, estado) VALUES ('Sala de Estudio A', 1, 'Disponible');
-INSERT INTO RECURSO (nombre, id_tipo, estado) VALUES ('Sala de Estudio B', 1, 'Disponible');
-INSERT INTO RECURSO (nombre, id_tipo, estado) VALUES ('PC Lab 1 - 01', 2, 'Disponible');
-INSERT INTO RECURSO (nombre, id_tipo, estado) VALUES ('Notebook HP 01', 3, 'Disponible');
+
+-- TIPOS
+INSERT INTO TIPO_RECURSO VALUES (1, 'Sala de Estudio'), (2, 'PC Desktop'), (3, 'Notebook'), (4, 'Tablet');
+
+-- RECURSOS
+INSERT INTO RECURSO (nombre, id_tipo, biblioteca, estado) VALUES ('Sala Central 01', 1, 'Biblioteca Central', 'Disponible');
+INSERT INTO RECURSO (nombre, id_tipo, biblioteca, estado) VALUES ('Sala Central 02', 1, 'Biblioteca Central', 'Disponible');
+INSERT INTO RECURSO (nombre, id_tipo, biblioteca, estado) VALUES ('PC Lab Central 01', 2, 'Biblioteca Central', 'Disponible');
+INSERT INTO RECURSO (nombre, id_tipo, biblioteca, estado) VALUES ('iPad Air Pro', 4, 'Biblioteca Central', 'Disponible');
+
+INSERT INTO RECURSO (nombre, id_tipo, biblioteca, estado) VALUES ('Sala FAE Especializada', 1, 'Biblioteca FAE', 'Disponible');
+INSERT INTO RECURSO (nombre, id_tipo, biblioteca, estado) VALUES ('PC FAE 01', 2, 'Biblioteca FAE', 'Disponible');
+INSERT INTO RECURSO (nombre, id_tipo, biblioteca, estado) VALUES ('Notebook Dell Latitude', 3, 'Biblioteca FAE', 'Disponible');
+
+INSERT INTO RECURSO (nombre, id_tipo, biblioteca, estado) VALUES ('Sala Estudio 1 DMCC', 1, 'Biblioteca DMCC', 'Disponible');
+INSERT INTO RECURSO (nombre, id_tipo, biblioteca, estado) VALUES ('PC DMCC 01', 2, 'Biblioteca DMCC', 'Mantenimiento');
