@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <title>Equipoteca - Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet">
     <style>
         body { background-color: #00a499; display: flex; flex-direction: column; min-height: 100vh; }
         .bg-institucional { background-color: #00a499 !important; }
@@ -21,16 +23,33 @@
         
         .hero-section { background-color: #f8f9fa; border-radius: 10px; padding: 2rem; border-left: 5px solid #ea7600; }
         
-        /* Ajuste sutil para las pestañas estándar de Bootstrap */
         .nav-tabs .nav-link { color: #495057; border-radius: 8px 8px 0 0; }
         .nav-tabs .nav-link.active { color: #00a499; font-weight: bold; border-bottom-color: white; }
+        
+        /* Centrar la paginación de DataTables */
+        .dataTables_wrapper .dataTables_paginate .pagination { justify-content: center !important; margin-top: 15px !important; }
+        .page-item.active .page-link { background-color: #00a499; border-color: #00a499; }
+
+        /* Estilos para los logos ajustados */
+        .logo-navbar {
+            height: 45px;
+            width: auto;
+            object-fit: contain;
+        }
+        .logo-footer {
+            height: 35px;
+            width: auto;
+            object-fit: contain;
+        }
     </style>
 </head>
 <body>
 
 <nav class="navbar navbar-dark bg-institucional shadow-sm">
     <div class="container-fluid px-4">
-        <span class="navbar-brand mb-0 h1 fw-bold">📚 EQUIPOTECA</span>
+        <span class="navbar-brand mb-0 h1 fw-bold d-flex align-items-center">
+            EQUIPOTECA
+        </span>
         <div class="d-flex text-white align-items-center">
             <span class="me-3 fw-medium">👤 {{ session['nombre'] }} ({{ session['rol']|capitalize }})</span>
             <a href="/logout" class="btn btn-sm btn-light text-institucional fw-bold">Cerrar Sesión</a>
@@ -89,7 +108,7 @@
                             <div class="card h-100 border-0 bg-light shadow-sm">
                                 <div class="card-body">
                                     <h5 class="text-institucional fw-bold">⏳ Gestión de Solicitudes</h5>
-                                    <p class="small text-muted">Las solicitudes de los estudiantes entran como <strong>Pendientes</strong>. Al Aprobar una, el sistema automáticamente rechaza otras solicitudes que choquen en horario para el mismo recurso. Tú tienes la última palabra.</p>
+                                    <p class="small text-muted">Las solicitudes entran como <strong>Pendientes</strong>. Al Aprobar una, el sistema automáticamente rechaza otras que choquen en horario para el mismo recurso.</p>
                                 </div>
                             </div>
                         </div>
@@ -98,9 +117,9 @@
                                 <div class="card-body">
                                     <h5 class="text-institucional fw-bold">🚫 Reglas de Sanciones</h5>
                                     <ul class="small text-muted mb-0">
-                                        <li>Puedes aplicar suspensiones temporales (días) o baneos permanentes.</li>
-                                        <li>No puedes sancionar a un estudiante que ya tiene una sanción activa en curso (no aparecerá en la lista de búsqueda).</li>
-                                        <li>Cualquier administrador puede levantar anticipadamente un castigo desde la pestaña de Sanciones.</li>
+                                        <li>Puedes aplicar suspensiones temporales o baneos permanentes.</li>
+                                        <li>No puedes sancionar a un estudiante que ya tiene una sanción activa.</li>
+                                        <li>Cualquier administrador puede levantar un castigo.</li>
                                     </ul>
                                 </div>
                             </div>
@@ -108,8 +127,8 @@
                         <div class="col-md-12">
                             <div class="card border-0 bg-light shadow-sm">
                                 <div class="card-body">
-                                    <h5 class="text-institucional fw-bold">⚙️ Gestión de Inventario (Biblioteca)</h5>
-                                    <p class="small text-muted mb-0">Al Modificar o Agregar recursos, <strong>solo puedes asignar el recurso a bibliotecas ya existentes</strong> en el sistema para mantener la integridad de los datos. Si eliminas un recurso, ⚠️ se destruirá todo su historial de reservas para evitar errores en la base de datos.</p>
+                                    <h5 class="text-institucional fw-bold">⚙️ Gestión de Inventario (Eliminación Forzada)</h5>
+                                    <p class="small text-muted mb-0">Al eliminar un recurso, el sistema aplicará una <strong>eliminación en cascada</strong>. Esto significa que si eliminas una sala que se quemó o un PC que se rompió, el sistema cancelará y borrará instantáneamente todos los préstamos activos y pendientes de los estudiantes para ese equipo sin necesidad de esperar a que terminen.</p>
                                 </div>
                             </div>
                         </div>
@@ -190,7 +209,7 @@
                                 <h2 class="accordion-header"><button class="accordion-button fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#admin-pend-{{ loop.index }}">{{ biblio }} <span class="badge bg-acento ms-2">{{ lista_sol|length }}</span></button></h2>
                                 <div id="admin-pend-{{ loop.index }}" class="accordion-collapse collapse {% if loop.index == 1 %}show{% endif %}" data-bs-parent="#accordionAdminPendientes">
                                     <div class="accordion-body p-0">
-                                        <table class="table table-striped mb-0">
+                                        <table class="table table-striped mb-0 tabla-paginada w-100">
                                             <thead class="bg-institucional text-white"><tr><th>Estudiante</th><th>Recurso</th><th>Detalle</th><th>Acciones</th></tr></thead>
                                             <tbody>
                                                 {% for sol in lista_sol %}
@@ -222,7 +241,7 @@
                                 <h2 class="accordion-header"><button class="accordion-button fw-bold bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#admin-act-{{ loop.index }}">{{ biblio }} <span class="badge bg-success ms-2">{{ lista_act|length }}</span></button></h2>
                                 <div id="admin-act-{{ loop.index }}" class="accordion-collapse collapse {% if loop.index == 1 %}show{% endif %}" data-bs-parent="#accordionAdminActivos">
                                     <div class="accordion-body p-0">
-                                        <table class="table table-hover mb-0">
+                                        <table class="table table-hover mb-0 tabla-paginada w-100">
                                             <thead class="table-success"><tr><th>Identidad</th><th>Recurso</th><th>Horario / Plazo</th></tr></thead>
                                             <tbody>
                                                 {% for sol in lista_act %}
@@ -250,7 +269,7 @@
                     </ul>
                     <div class="tab-content">
                         <div class="tab-pane fade show active" id="ver-sanciones">
-                            <table class="table table-bordered table-hover">
+                            <table class="table table-bordered table-hover tabla-paginada w-100">
                                 <thead class="table-danger"><tr><th>Estudiante</th><th>Motivo</th><th>Vigencia</th><th>Aplicado por</th><th>Acción</th></tr></thead>
                                 <tbody>
                                     {% for s in lista_sanciones %}
@@ -259,9 +278,16 @@
                                         <td>{{ s.motivo or 'Sin especificar' }}</td>
                                         <td>{% if s.fecha_fin %}<span class="badge bg-warning text-dark">Hasta: {{ s.fecha_fin.strftime('%d/%m/%Y %H:%M') }}</span>{% else %}<span class="badge bg-danger">Permanente</span>{% endif %}</td>
                                         <td>Admin. {{ s.adm_nombre }}</td>
-                                        <td><form action="/eliminar_sancion/{{ s.id_sancion }}" method="POST" onsubmit="return confirm('¿Levantar esta sanción?');"><button type="submit" class="btn btn-sm btn-outline-success fw-bold">Levantar Castigo</button></form></td>
+                                        <td>
+                                            <form id="formLevantar-{{ s.id_sancion }}" action="/eliminar_sancion/{{ s.id_sancion }}" method="POST">
+                                                <button type="button" class="btn btn-sm btn-outline-success fw-bold" 
+                                                        onclick="abrirModalConfirmacion('formLevantar-{{ s.id_sancion }}', 'success', 'Levantar Sanción', 'El estudiante recuperará inmediatamente el acceso para solicitar recursos.', 'Confirmar Acción')">
+                                                    Levantar Castigo
+                                                </button>
+                                            </form>
+                                        </td>
                                     </tr>
-                                    {% else %} <tr><td colspan="5" class="text-center">No hay alumnos sancionados en este momento.</td></tr> {% endfor %}
+                                    {% endfor %}
                                 </tbody>
                             </table>
                         </div>
@@ -341,10 +367,19 @@
                         <div class="tab-pane fade" id="eliminar-recurso">
                             <div class="card border-danger shadow-sm">
                                 <div class="card-body">
-                                    <div class="alert alert-danger fw-bold">⚠️ Advertencia: Eliminar un recurso borrará automáticamente todas las reservas asociadas.</div>
-                                    <form action="/eliminar_recurso" method="POST" onsubmit="return confirm('⚠️ ALERTA CRÍTICA: Acción irreversible. ¿Proceder?');">
-                                        <div class="mb-4"><label class="form-label fw-bold">Buscar Equipo a Eliminar</label><input type="text" id="busquedaEliminar" class="form-control mb-2" placeholder="🔍 Escribe nombre..." onkeyup="filtrarLista('busquedaEliminar', 'selectEliminar')"><select class="form-select bg-light text-danger fw-bold" name="id_recurso" id="selectEliminar" size="5" required>{% for r in recursos_admin %} <option value="{{ r.id_recurso }}">{{ r.nombre }} - {{ r.biblioteca }}</option> {% endfor %}</select></div>
-                                        <button type="submit" class="btn btn-danger w-100 fw-bold">Eliminar Recurso Definitivamente</button>
+                                    <div class="alert alert-danger fw-bold">⚠️ Advertencia: Si eliminas este recurso, se cancelarán y borrarán todos los préstamos activos y el historial asociado de inmediato.</div>
+                                    <form id="formEliminarRecursoAdmin" action="/eliminar_recurso" method="POST">
+                                        <div class="mb-4">
+                                            <label class="form-label fw-bold">Buscar Equipo a Eliminar</label>
+                                            <input type="text" id="busquedaEliminar" class="form-control mb-2" placeholder="🔍 Escribe nombre..." onkeyup="filtrarLista('busquedaEliminar', 'selectEliminar')">
+                                            <select class="form-select bg-light text-danger fw-bold" name="id_recurso" id="selectEliminar" size="5" required>
+                                                {% for r in recursos_admin %} <option value="{{ r.id_recurso }}">{{ r.nombre }} - {{ r.biblioteca }}</option> {% endfor %}
+                                            </select>
+                                        </div>
+                                        <button type="button" class="btn btn-danger w-100 fw-bold" 
+                                                onclick="abrirModalConfirmacion('formEliminarRecursoAdmin', 'danger', 'ALERTA CRÍTICA', 'Esta acción eliminará la sala/equipo y destruirá todo su historial de reservas y préstamos activos.', 'Sí, Eliminar Definitivamente')">
+                                            Eliminar Recurso Definitivamente
+                                        </button>
                                     </form>
                                 </div>
                             </div>
@@ -475,27 +510,43 @@
 
                     <div class="tab-pane fade" id="est-historial">
                         <h3 class="mb-4 text-institucional fw-bold">Mis Solicitudes e Historial</h3>
-                        <table class="table mt-3 shadow-sm rounded overflow-hidden">
-                            <thead class="bg-light text-secondary"><tr><th>Recurso</th><th>Fecha/Bloque</th><th>Estado</th><th>Acción</th></tr></thead>
-                            <tbody>
-                                {% for sol in mis_solicitudes %}
-                                <tr>
-                                    <td><strong>{{ sol.recurso }}</strong><br><small class="text-muted">{{ sol.biblioteca }}</small></td>
-                                    <td>{{ sol.fecha_str }} <br> <small class="text-muted">{{ sol.inicio_str }} - {{ sol.fin_str }}</small></td>
-                                    <td>
-                                        {% if sol.estado_solicitud == 'Pendiente' %} <span class="badge bg-warning text-dark">En Revisión</span>
-                                        {% elif sol.estado_solicitud == 'Caducada' %} <span class="badge bg-secondary">Caducada / Expiró</span>
-                                        {% else %} <span class="badge bg-danger">Rechazada</span> {% endif %}
-                                    </td>
-                                    <td>
-                                        <form action="/accion_solicitud/{{ sol.id_solicitud }}/{{ 'cancelar' if sol.estado_solicitud == 'Pendiente' else 'borrar' }}" method="POST">
-                                            <button type="submit" class="btn btn-sm btn-outline-{{ 'danger' if sol.estado_solicitud == 'Pendiente' else 'secondary' }}">{{ 'Cancelar' if sol.estado_solicitud == 'Pendiente' else 'Borrar Historial' }}</button>
-                                        </form>
-                                    </td>
-                                </tr>
-                                {% else %} <tr><td colspan="4" class="text-center py-4 text-muted">Aún no has realizado ninguna solicitud.</td></tr> {% endfor %}
-                            </tbody>
-                        </table>
+                        
+                        <div class="table-responsive">
+                            <table class="table mt-3 shadow-sm rounded overflow-hidden tabla-paginada w-100">
+                                <thead class="bg-light text-secondary">
+                                    <tr><th>Recurso</th><th>Fecha/Bloque</th><th>Estado</th><th>Acción</th></tr>
+                                </thead>
+                                <tbody>
+                                    {% for sol in mis_solicitudes %}
+                                    <tr>
+                                        <td><strong>{{ sol.recurso }}</strong><br><small class="text-muted">{{ sol.biblioteca }}</small></td>
+                                        <td>{{ sol.fecha_str }} <br> <small class="text-muted">{{ sol.inicio_str }} - {{ sol.fin_str }}</small></td>
+                                        <td>
+                                            {% if sol.id_estado_solicitud == 1 %} <span class="badge bg-warning text-dark">Pendiente</span>
+                                            {% elif sol.id_estado_solicitud == 2 %} <span class="badge bg-success">Aprobada</span>
+                                            {% elif sol.id_estado_solicitud == 3 %} <span class="badge bg-danger">Cancelada/Rechazada</span>
+                                            {% elif sol.id_estado_solicitud == 4 %} <span class="badge bg-secondary">Caducada</span>
+                                            {% elif sol.id_estado_solicitud == 5 %} <span class="badge bg-info text-dark">Finalizada</span>
+                                            {% else %} <span class="badge bg-dark">Desconocido</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if sol.id_estado_solicitud == 1 %}
+                                            <form id="formCancelarSol-{{ sol.id_solicitud }}" action="/accion_solicitud/{{ sol.id_solicitud }}/cancelar" method="POST">
+                                                <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                        onclick="abrirModalConfirmacion('formCancelarSol-{{ sol.id_solicitud }}', 'warning', 'Cancelar Solicitud', 'Tu solicitud pasará a estado Cancelada en el historial y el recurso quedará libre.', 'Sí, Cancelar')">
+                                                    Cancelar Solicitud
+                                                </button>
+                                            </form>
+                                            {% else %}
+                                                <span class="text-muted small">Sin acciones</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
 
                     <div class="tab-pane fade" id="est-activos">
@@ -527,7 +578,10 @@
     <div class="container">
         <div class="row align-items-center text-center text-md-start">
             <div class="col-md-6 mb-3 mb-md-0">
-                <h5 class="fw-bold mb-1">📚 Equipoteca USACH</h5>
+                <h5 class="fw-bold mb-1 d-flex align-items-center justify-content-center justify-content-md-start">
+                    <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo USACH" class="logo-footer me-3">
+                    Equipoteca USACH
+                </h5>
                 <p class="small mb-0 text-light">Sistema centralizado de gestión de préstamos de la biblioteca.</p>
             </div>
             <div class="col-md-6 text-md-end small">
@@ -540,6 +594,28 @@
         </div>
     </div>
 </footer>
+
+<div class="modal fade" id="modalConfirmacionGlobal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
+            <div class="modal-header border-0 pb-0" id="confirmHeader">
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center pt-0 pb-4 px-4">
+                <div id="confirmIconContainer" class="mb-3">
+                    <i id="confirmIcon" class="bi" style="font-size: 4rem;"></i>
+                </div>
+                <h3 class="fw-bold mb-3" id="confirmTitle">¿Estás seguro?</h3>
+                <p class="text-muted fs-5 mb-4" id="confirmMessage">Esta acción no se puede deshacer.</p>
+                <div class="d-flex justify-content-center gap-3">
+                    <button type="button" class="btn btn-secondary px-4 fw-bold rounded-pill" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn px-4 fw-bold rounded-pill" id="confirmBtnAction">Confirmar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 {% if session['rol'] == 'admin' %}
     {% for recurso in todos_recursos %}
@@ -615,10 +691,93 @@
     {% endfor %}
 {% endif %}
 
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
 
 <script>
-    // JSON Global para ambos roles
+    let targetFormId = null;
+
+    function abrirModalConfirmacion(formId, type, title, message, btnText) {
+        targetFormId = formId;
+        const form = document.getElementById(formId);
+
+        const select = form.querySelector('select[name="id_recurso"]');
+        if (select && !select.value) {
+            alert("Por favor, selecciona un recurso de la lista primero.");
+            return;
+        }
+
+        document.getElementById('confirmTitle').innerText = title;
+        document.getElementById('confirmMessage').innerText = message;
+        
+        let icon = document.getElementById('confirmIcon');
+        let btnAction = document.getElementById('confirmBtnAction');
+        let header = document.getElementById('confirmHeader');
+
+        icon.className = "bi";
+        btnAction.className = "btn px-4 fw-bold rounded-pill";
+        header.className = "modal-header border-0 pb-0";
+
+        if (type === 'danger') {
+            icon.classList.add('bi-exclamation-octagon', 'text-danger');
+            btnAction.classList.add('btn-danger');
+            btnAction.innerText = btnText;
+        } else if (type === 'warning') {
+            icon.classList.add('bi-exclamation-triangle', 'text-warning');
+            btnAction.classList.add('btn-warning', 'text-dark');
+            btnAction.innerText = btnText;
+        } else if (type === 'success') {
+            icon.classList.add('bi-check-circle', 'text-success');
+            btnAction.classList.add('btn-success');
+            btnAction.innerText = btnText;
+        }
+
+        let confirmModal = new bootstrap.Modal(document.getElementById('modalConfirmacionGlobal'));
+        confirmModal.show();
+    }
+
+    document.getElementById('confirmBtnAction').addEventListener('click', function() {
+        if (targetFormId) {
+            document.getElementById(targetFormId).submit();
+        }
+    });
+
+    $(document).ready(function() {
+        // 1. MEMORIA DE PESTAÑAS (REFRESH FIX)
+        var activeTab = localStorage.getItem('activeTabEquipoteca');
+        if (activeTab) {
+            var triggerEl = document.querySelector('a[href="' + activeTab + '"], button[data-bs-target="' + activeTab + '"]');
+            if (triggerEl) {
+                var tab = new bootstrap.Tab(triggerEl);
+                tab.show();
+            }
+        }
+        $('a[data-bs-toggle="list"], button[data-bs-toggle="tab"]').on('shown.bs.tab', function (e) {
+            var tabId = $(e.target).attr('href') || $(e.target).attr('data-bs-target');
+            localStorage.setItem('activeTabEquipoteca', tabId);
+            
+            $($.fn.dataTable.tables(true)).DataTable().columns.adjust();
+        });
+
+        if ($('.tabla-paginada').length) {
+            $('.tabla-paginada').DataTable({
+                "pageLength": 6,
+                "lengthChange": false,
+                "searching": false,
+                "info": false,
+                "ordering": false,
+                "autoWidth": false,
+                "dom": '<"table-responsive"t><"d-flex justify-content-center mt-3"p>',
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json",
+                    "emptyTable": "No hay registros disponibles en este momento."
+                }
+            });
+        }
+    });
+
     const bloquesOcupados = {{ bloques_ocupados_json | safe }};
 
     function filtrarLista(inputId, selectId) {
@@ -631,7 +790,6 @@
         }
     }
 
-    // --- LÓGICA ADMINISTRADOR ---
     {% if session['rol'] == 'admin' %}
     function togglePermanente() {
         const isChecked = document.getElementById('checkPermanente').checked;
@@ -693,7 +851,6 @@
     }
     {% endif %}
 
-    // --- LÓGICA ESTUDIANTE ---
     {% if session['rol'] == 'estudiante' and not sancionado %}
     function validarFechaYFiltrar(inputFecha, idRecurso) {
         const modal = document.getElementById(`modal${idRecurso}`);

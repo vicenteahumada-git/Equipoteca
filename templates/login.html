@@ -5,43 +5,122 @@
     <title>Equipoteca - Iniciar Sesión</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { background-color: #00a499; }
-        .login-card { border-radius: 15px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
-        .btn-acento { background-color: #ea7600; border-color: #ea7600; color: white; transition: 0.3s; }
-        .btn-acento:hover { background-color: #cc6600; border-color: #cc6600; color: white; transform: translateY(-2px); }
+        body { 
+            background-color: #00a499; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            height: 100vh; 
+            margin: 0; 
+        }
+        .login-card { 
+            background: white; 
+            border-radius: 15px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2); 
+            overflow: hidden; 
+            width: 100%; 
+            max-width: 400px; 
+        }
+        .login-header { 
+            background-color: #f8f9fa; 
+            padding: 3rem 2rem 1.5rem;
+            border-bottom: 3px solid #ea7600; 
+            text-align: center; 
+        }
+        
+        .brand-logo-container {
+            width: 100%;
+            max-width: 280px;
+            margin: 0 auto 1rem auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .brand-logo-container img {
+            width: 100%;
+            height: auto;
+            object-fit: contain; 
+        }
+
         .text-institucional { color: #00a499; }
+        .btn-acento { 
+            background-color: #ea7600; 
+            border-color: #ea7600; 
+            color: white; 
+            font-weight: bold; 
+        }
+        .btn-acento:hover { 
+            background-color: #cc6600; 
+            color: white; 
+        }
     </style>
 </head>
-<body class="d-flex align-items-center min-vh-100">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-5">
-                <div class="card login-card p-4 bg-white">
-                    <div class="text-center mb-4">
-                        <h2 class="fw-bold text-institucional">EQUIPOTECA</h2>
-                        <p class="text-muted">Sistema de Gestión de Bibliotecas</p>
-                    </div>
-                    {% with messages = get_flashed_messages(with_categories=true) %}
-                        {% if messages %}
-                            {% for category, message in messages %}
-                                <div class="alert alert-{{ category }}">{{ message }}</div>
-                            {% endfor %}
-                        {% endif %}
-                    {% endwith %}
-                    <form method="POST">
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Correo Institucional</label>
-                            <input type="email" class="form-control" name="correo" placeholder="ejemplo@usach.cl" required>
-                        </div>
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">Contraseña</label>
-                            <input type="password" class="form-control" name="password" placeholder="••••••••" required>
-                        </div>
-                        <button type="submit" class="btn btn-acento w-100 fw-bold py-2 fs-5">Ingresar al Sistema</button>
-                    </form>
-                </div>
+<body>
+    <div class="login-card">
+        <div class="login-header">
+            <div class="brand-logo-container">
+                <img src="{{ url_for('static', filename='logo.png') }}" alt="Equipoteca USACH">
             </div>
+            <p class="text-muted small mt-2 mb-0">Universidad de Santiago de Chile</p>
+        </div>
+        <div class="card-body p-4">
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                {% for category, message in messages %}
+                  <div class="alert alert-{{ category }} small py-2 fw-bold text-center msj-flash">{{ message }}</div>
+                {% endfor %}
+              {% endif %}
+            {% endwith %}
+            
+            <form id="loginForm" action="/login" method="POST" novalidate>
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-secondary">Correo Institucional</label>
+                    <input type="email" id="correoInput" name="correo" class="form-control bg-light" required placeholder="ejemplo@usach.cl">
+                    
+                    <div id="correoError" class="alert alert-danger small mt-2 mb-0 py-2 fw-bold" style="display: none;"></div>
+                </div>
+                <div class="mb-4">
+                    <label class="form-label fw-bold text-secondary">Contraseña</label>
+                    <input type="password" name="password" class="form-control bg-light" required placeholder="******">
+                </div>
+                <button type="submit" class="btn btn-acento w-100 py-2">Ingresar al Sistema</button>
+            </form>
         </div>
     </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(event) {
+            var correoInput = document.getElementById('correoInput');
+            var errorDiv = document.getElementById('correoError');
+
+            correoInput.classList.remove('is-invalid');
+            errorDiv.style.display = 'none';
+
+            if (!correoInput.checkValidity()) {
+                event.preventDefault(); 
+                correoInput.classList.add('is-invalid');
+                
+                let mensaje = "Por favor, introduce una dirección de correo válida.";
+                
+                if (correoInput.value.trim() === "") {
+                    mensaje = "Este campo es obligatorio.";
+                }
+
+                errorDiv.textContent = mensaje; 
+                errorDiv.style.display = 'block';
+            }
+        });
+
+        document.querySelectorAll('input').forEach(function(input) {
+            input.addEventListener('input', function() {
+                this.classList.remove('is-invalid');
+                document.getElementById('correoError').style.display = 'none';
+                document.querySelectorAll('.msj-flash').forEach(function(el) {
+                    el.style.display = 'none';
+                });
+            });
+        });
+    </script>
 </body>
 </html>
